@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notas Paradas — Tratativas Compras</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --surface2: #f0efe9;
+    --border: rgba(0,0,0,0.09);
+    --border2: rgba(0,0,0,0.15);
+    --text: #1a1a18;
+    --text2: #6b6b66;
+    --text3: #9e9e98;
+    --red: #c0392b;
+    --red-bg: #fdf0ef;
+    --amber: #9a6200;
+    --amber-bg: #fef8ec;
+    --green: #2d6a1f;
+    --green-bg: #edf6e8;
+    --blue: #1a4f8a;
+    --blue-bg: #eaf1fb;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-logo {
+    width: 36px; height: 36px;
+    background: #1a1a18;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .header-logo svg { width: 20px; height: 20px; fill: #f7f6f2; }
+  .header h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
+  .header-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .badge-date { font-size: 12px; color: var(--text2); background: var(--surface2); border: 1px solid var(--border); border-radius: 99px; padding: 4px 12px; }
+  #btn-reload {
+    font-size: 12px; font-weight: 500;
+    background: #1a1a18; color: #f7f6f2;
+    border: none; border-radius: var(--radius-sm);
+    padding: 7px 16px; cursor: pointer;
+    transition: opacity .15s;
+  }
+  #btn-reload:hover { opacity: 0.8; }
+
+  /* ── MAIN ── */
+  .main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+
+  /* ── LOADING ── */
+  #loading {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 300px; gap: 16px;
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--border2);
+    border-top-color: #1a1a18;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading p { font-size: 14px; color: var(--text2); }
+
+  #error-msg {
+    display: none;
+    background: var(--red-bg);
+    border: 1px solid #f5c6c3;
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    color: var(--red);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  #content { display: none; }
+
+  /* ── KPI CARDS ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .kpi-label { font-size: 11px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+  .kpi-value { font-size: 28px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; }
+  .kpi-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .kpi-value.red { color: var(--red); }
+  .kpi-value.amber { color: var(--amber); }
+  .kpi-value.green { color: var(--green); }
+  .kpi-value.blue { color: var(--blue); }
+
+  /* ── CHARTS ROW ── */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 700px) { .charts-row { grid-template-columns: 1fr; } }
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+  }
+  .chart-card h3 { font-size: 12px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 14px; }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border2);
+    border-radius: 99px;
+    padding: 5px 14px;
+    cursor: pointer;
+    background: var(--surface);
+    color: var(--text2);
+    transition: all .12s;
+  }
+  .filter-btn:hover { background: var(--surface2); }
+  .filter-btn.active { background: #1a1a18; color: #f7f6f2; border-color: #1a1a18; }
+  .filter-btn .dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  .search-wrap { margin-left: auto; }
+  .search-wrap input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 6px 12px;
+    background: var(--surface);
+    color: var(--text);
+    width: 200px;
+    outline: none;
+  }
+  .search-wrap input:focus { border-color: #1a1a18; }
+
+  /* ── TABLE ── */
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .table-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .table-header h2 { font-size: 14px; font-weight: 600; }
+  .table-count { font-size: 12px; color: var(--text2); }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    background: var(--surface2);
+    color: var(--text2);
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: 10px 14px;
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafaf8; }
+  tr.row-critico td { background: #fdf5f4; }
+  tr.row-critico:hover td { background: #faecea; }
+  .mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 99px;
+    white-space: nowrap;
+  }
+  .badge-red    { background: var(--red-bg);   color: var(--red); }
+  .badge-amber  { background: var(--amber-bg); color: var(--amber); }
+  .badge-green  { background: var(--green-bg); color: var(--green); }
+  .badge-blue   { background: var(--blue-bg);  color: var(--blue); }
+  .badge-gray   { background: var(--surface2); color: var(--text2); }
+  .critico-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--red);
+    color: #fff;
+    margin-left: 5px;
+    vertical-align: middle;
+    letter-spacing: .03em;
+  }
+
+  /* ── OBS CELL ── */
+  .obs-cell {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text2);
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .obs-cell:hover { color: var(--blue); text-decoration: underline; }
+
+  /* ── LINK BTN ── */
+  .link-btn {
+    font-size: 11px;
+    color: var(--blue);
+    border: 1px solid #b5d4f4;
+    border-radius: 5px;
+    padding: 2px 8px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .link-btn:hover { background: var(--blue-bg); }
+
+  /* ── MODAL ── */
+  #modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  #modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 28px 28px 24px;
+    max-width: 480px;
+    width: 100%;
+    border: 1px solid var(--border2);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+  .modal-title { font-size: 16px; font-weight: 600; line-height: 1.3; }
+  .modal-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .modal-close {
+    background: var(--surface2); border: none;
+    width: 28px; height: 28px; border-radius: 50%;
+    font-size: 16px; cursor: pointer; color: var(--text2);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-left: 12px;
+    line-height: 1;
+  }
+  .modal-close:hover { background: var(--border2); }
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .modal-field label { font-size: 10px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 3px; }
+  .modal-field span { font-size: 13px; color: var(--text); }
+  .modal-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  .modal-obs-block { margin-bottom: 12px; }
+  .modal-obs-block label { font-size: 10px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 4px; }
+  .modal-obs-block p { font-size: 13px; color: var(--text); line-height: 1.6; background: var(--surface2); border-radius: var(--radius-sm); padding: 10px 12px; }
+  .modal-critico-alert {
+    background: var(--red-bg);
+    border: 1px solid #f5c6c3;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--red);
+    font-weight: 500;
+    margin-top: 14px;
+  }
+
+  /* ── EMPTY ── */
+  .empty-row td {
+    text-align: center;
+    padding: 40px;
+    color: var(--text3);
+    font-size: 14px;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 24px 32px;
+    font-size: 11px;
+    color: var(--text3);
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">
+      <svg viewBox="0 0 20 20"><path d="M3 4h14v2H3V4zm0 5h14v2H3V9zm0 5h9v2H3v-2z"/></svg>
+    </div>
+    <div>
+      <div class="header h1" style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.02em;">Notas paradas — tratativas compras</div>
+      <div class="header-sub" id="sheet-name">Carregando planilha...</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="badge-date" id="today-label"></span>
+    <button id="btn-reload" onclick="loadData()">Atualizar dados</button>
+  </div>
+</div>
+
+<div class="main">
+  <div id="loading">
+    <div class="spinner"></div>
+    <p>Buscando dados da planilha...</p>
+  </div>
+
+  <div id="error-msg"></div>
+
+  <div id="content">
+    <div class="kpi-grid" id="kpi-grid"></div>
+
+    <div class="charts-row">
+      <div class="chart-card">
+        <h3>Notas por fornecedor</h3>
+        <div style="position:relative;height:220px;">
+          <canvas id="chart-forn" role="img" aria-label="Notas por fornecedor">Gráfico de notas por fornecedor</canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3>Status de tratativa</h3>
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;" id="legend-status"></div>
+        <div style="position:relative;height:190px;">
+          <canvas id="chart-status" role="img" aria-label="Distribuição por status">Gráfico por status</canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">Todas</button>
+      <button class="filter-btn" data-filter="pendente" onclick="setFilter('pendente',this)"><span class="dot" style="background:#c0392b"></span>Pendentes</button>
+      <button class="filter-btn" data-filter="andamento" onclick="setFilter('andamento',this)"><span class="dot" style="background:#9a6200"></span>Em andamento</button>
+      <button class="filter-btn" data-filter="concluido" onclick="setFilter('concluido',this)"><span class="dot" style="background:#2d6a1f"></span>Concluídas</button>
+      <button class="filter-btn" data-filter="critico" onclick="setFilter('critico',this)"><span class="dot" style="background:#c0392b"></span>Críticas +20d</button>
+      <div class="search-wrap">
+        <input type="text" id="search-input" placeholder="Buscar fornecedor, NF, desc..." oninput="renderTable()">
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-header">
+        <h2>Registro de notas paradas</h2>
+        <span class="table-count" id="table-count"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fornecedor</th>
+              <th>Tipo</th>
+              <th>Nota fiscal</th>
+              <th>Item</th>
+              <th>Descrição</th>
+              <th style="text-align:right">Vol. reprov.</th>
+              <th style="text-align:right">Vol. faltante</th>
+              <th>Insp. 100%</th>
+              <th>Dt. entrega</th>
+              <th>Status compras</th>
+              <th>Obs. recebimento</th>
+              <th>Obs. compras</th>
+              <th>Formulário</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer" id="footer-info"></div>
+
+<!-- MODAL -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-box">
+    <div class="modal-top">
+      <div>
+        <div class="modal-title" id="m-title"></div>
+        <div class="modal-sub" id="m-sub"></div>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('open')">×</button>
+    </div>
+    <div id="m-body"></div>
+  </div>
+</div>
+
+<script>
+const SHEET_ID = '1MFnPmUfxxzE1gjJzGVlVmdFOaHI-TmqonLnRGQNNQC8';
+const GID      = '1456714907';
+
+let allRows = [];
+let currentFilter = 'all';
+let charts = {};
+
+document.getElementById('today-label').textContent = new Date().toLocaleDateString('pt-BR', { weekday:'short', day:'2-digit', month:'short', year:'numeric' });
+
+function parseDate(str) {
+  if (!str) return null;
+  const p = str.split('/');
+  if (p.length === 3) return new Date(+p[2], +p[1]-1, +p[0]);
+  return new Date(str);
+}
+
+function daysDiff(dateStr) {
+  const d = parseDate(dateStr);
+  if (!d || isNaN(d)) return 0;
+  return Math.floor((Date.now() - d.getTime()) / 86400000);
+}
+
+function isCritico(r) {
+  const status = (r.status || '').toLowerCase();
+  if (status.includes('conclu')) return false;
+  return daysDiff(r.dtEntrega) > 20;
+}
+
+function normalizeStatus(raw) {
+  if (!raw) return 'pendente';
+  const s = raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  if (s.includes('conclu')) return 'concluido';
+  if (s.includes('andamento') || s.includes('progress') || s.includes('tratando') || s.includes('em trat')) return 'andamento';
+  return 'pendente';
+}
+
+async function loadData() {
+  document.getElementById('loading').style.display = 'flex';
+  document.getElementById('content').style.display  = 'none';
+  document.getElementById('error-msg').style.display = 'none';
+
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTPS ' + res.status);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
+
+    const cols = json.table.cols;
+    const rows = json.table.rows;
+
+    allRows = rows
+      .filter(r => r && r.c && r.c[0] && r.c[0].v)
+      .map(r => {
+        const v = i => (r.c[i] && r.c[i].v != null) ? String(r.c[i].v).trim() : '';
+        return {
+          fornecedor: v(0),
+          tipo:       v(1),
+          nf:         v(2),
+          item:       v(3),
+          desc:       v(4),
+          volRep:     parseFloat(v(5)) || 0,
+          volFalt:    parseFloat(v(6)) || 0,
+          ins100:     v(7),
+          dtEntrega:  v(8),
+          linkForm:   v(9),
+          codigo:     v(10),
+          obsRec:     v(11),
+          obsComp:    v(12),
+          statusRaw:  v(13),
+          status:     normalizeStatus(v(13)),
+        };
+      });
+
+    document.getElementById('sheet-name').textContent = 'Tratativa — Fornecedor (Compras) · ' + allRows.length + ' registros carregados';
+    document.getElementById('footer-info').textContent = 'Dados atualizados em ' + new Date().toLocaleString('pt-BR') + ' · Planilha ID ' + SHEET_ID;
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display  = 'block';
+
+    renderKPIs();
+    renderCharts();
+    renderTable();
+
+  } catch (e) {
+    document.getElementById('loading').style.display = 'none';
+    const err = document.getElementById('error-msg');
+    err.style.display = 'block';
+    err.innerHTML = `<strong>Não foi possível carregar os dados.</strong><br>Verifique se a planilha está pública (Compartilhar → qualquer pessoa com o link).<br><br>Detalhe: ${e.message}`;
+  }
+}
+
+function renderKPIs() {
+  const total     = allRows.length;
+  const pendente  = allRows.filter(r => r.status === 'pendente').length;
+  const andamento = allRows.filter(r => r.status === 'andamento').length;
+  const concluido = allRows.filter(r => r.status === 'concluido').length;
+  const critico   = allRows.filter(isCritico).length;
+  const totalRep  = allRows.reduce((a, r) => a + r.volRep, 0);
+  const totalFalt = allRows.reduce((a, r) => a + r.volFalt, 0);
+
+  const cards = [
+    { label: 'Total de notas',    value: total,                           cls: 'blue',  sub: 'em tratativa' },
+    { label: 'Pendentes',         value: pendente,                        cls: 'red',   sub: 'sem ação de compras' },
+    { label: 'Em andamento',      value: andamento,                       cls: 'amber', sub: 'aguardando retorno' },
+    { label: 'Concluídas',        value: concluido,                       cls: 'green', sub: 'resolvidas' },
+    { label: 'Críticas (+20d)',   value: critico,                         cls: 'red',   sub: 'sem solução há 20+ dias' },
+    { label: 'Vol. reprovado',    value: totalRep.toLocaleString('pt-BR'), cls: 'amber', sub: 'unidades reprovadas' },
+    { label: 'Vol. faltante',     value: totalFalt.toLocaleString('pt-BR'), cls: 'red', sub: 'unidades em falta' },
+  ];
+
+  document.getElementById('kpi-grid').innerHTML = cards.map(c =>
+    `<div class="kpi">
+      <div class="kpi-label">${c.label}</div>
+      <div class="kpi-value ${c.cls}">${c.value}</div>
+      <div class="kpi-sub">${c.sub}</div>
+    </div>`
+  ).join('');
+}
+
+function renderCharts() {
+  // Fornecedor chart
+  const fornMap = {};
+  allRows.forEach(r => { fornMap[r.fornecedor] = (fornMap[r.fornecedor]||0) + 1; });
+  const fornSorted = Object.entries(fornMap).sort((a,b) => b[1]-a[1]).slice(0,10);
+
+  if (charts.forn) charts.forn.destroy();
+  charts.forn = new Chart(document.getElementById('chart-forn'), {
+    type: 'bar',
+    data: {
+      labels: fornSorted.map(f => f[0].length > 18 ? f[0].slice(0,18)+'…' : f[0]),
+      datasets: [{
+        label: 'Notas',
+        data: fornSorted.map(f => f[1]),
+        backgroundColor: '#1a4f8a',
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: { size: 11, family:'DM Sans' }, color: '#6b6b66', maxRotation: 35, autoSkip: false }, grid: { display: false } },
+        y: { ticks: { font: { size: 11 }, color: '#6b6b66', stepSize: 1 }, grid: { color: 'rgba(0,0,0,.05)' } }
+      }
+    }
+  });
+
+  // Status donut
+  const stMap = { pendente: 0, andamento: 0, concluido: 0 };
+  allRows.forEach(r => { stMap[r.status] = (stMap[r.status]||0) + 1; });
+  const stColors = { pendente: '#c0392b', andamento: '#9a6200', concluido: '#2d6a1f' };
+  const stLabels = { pendente: 'Pendente', andamento: 'Em andamento', concluido: 'Concluído' };
+  const stVals   = Object.entries(stMap);
+
+  document.getElementById('legend-status').innerHTML = stVals.map(([k,v]) =>
+    `<span style="display:flex;align-items:center;gap:5px;font-size:12px;color:#6b6b66">
+      <span style="width:10px;height:10px;border-radius:2px;background:${stColors[k]};flex-shrink:0"></span>
+      ${stLabels[k]} <strong style="color:#1a1a18">${v}</strong>
+    </span>`
+  ).join('');
+
+  if (charts.status) charts.status.destroy();
+  charts.status = new Chart(document.getElementById('chart-status'), {
+    type: 'doughnut',
+    data: {
+      labels: stVals.map(([k]) => stLabels[k]),
+      datasets: [{ data: stVals.map(([,v]) => v), backgroundColor: stVals.map(([k]) => stColors[k]), borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '68%',
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+function statusBadge(s, raw) {
+  if (s === 'concluido') return `<span class="badge badge-green">Concluído</span>`;
+  if (s === 'andamento') return `<span class="badge badge-amber">${raw || 'Em andamento'}</span>`;
+  return `<span class="badge badge-red">${raw || 'Pendente'}</span>`;
+}
+
+function renderTable() {
+  const search = (document.getElementById('search-input').value || '').toLowerCase();
+  const filtered = allRows.filter(r => {
+    if (currentFilter === 'pendente'  && r.status !== 'pendente') return false;
+    if (currentFilter === 'andamento' && r.status !== 'andamento') return false;
+    if (currentFilter === 'concluido' && r.status !== 'concluido') return false;
+    if (currentFilter === 'critico'   && !isCritico(r)) return false;
+    if (search) {
+      const haystack = [r.fornecedor, r.nf, r.desc, r.tipo, r.obsRec, r.obsComp].join(' ').toLowerCase();
+      if (!haystack.includes(search)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('table-count').textContent = filtered.length + ' de ' + allRows.length + ' notas';
+
+  if (filtered.length === 0) {
+    document.getElementById('table-body').innerHTML =
+      `<tr class="empty-row"><td colspan="13">Nenhuma nota encontrada para este filtro.</td></tr>`;
+    return;
+  }
+
+  document.getElementById('table-body').innerHTML = filtered.map((r, i) => {
+    const idx = allRows.indexOf(r);
+    const crit = isCritico(r);
+    const dias = daysDiff(r.dtEntrega);
+    return `<tr class="${crit ? 'row-critico' : ''}">
+      <td style="font-weight:500;white-space:nowrap">${r.fornecedor}${crit ? '<span class="critico-tag">CRÍTICO</span>' : ''}</td>
+      <td style="white-space:nowrap;font-size:12px;color:#6b6b66">${r.tipo || '—'}</td>
+      <td class="mono">${r.nf || '—'}</td>
+      <td style="text-align:center;color:#6b6b66">${r.item || '—'}</td>
+      <td style="min-width:160px;max-width:200px;font-size:12px">${r.desc || '—'}</td>
+      <td style="text-align:right;font-weight:${r.volRep>0?'500':'400'};color:${r.volRep>0?'#c0392b':'#9e9e98'}">${r.volRep > 0 ? r.volRep.toLocaleString('pt-BR') : '—'}</td>
+      <td style="text-align:right;font-weight:${r.volFalt>0?'500':'400'};color:${r.volFalt>0?'#c0392b':'#9e9e98'}">${r.volFalt > 0 ? r.volFalt.toLocaleString('pt-BR') : '—'}</td>
+      <td style="text-align:center">${r.ins100 && r.ins100.toLowerCase().includes('sim') ? '<span class="badge badge-amber">Sim</span>' : '—'}</td>
+      <td style="white-space:nowrap;font-size:12px">${r.dtEntrega || '—'}${dias > 20 ? `<br><span style="font-size:10px;color:#c0392b">${dias}d atrás</span>` : ''}</td>
+      <td>${statusBadge(r.status, r.statusRaw)}</td>
+      <td class="obs-cell" onclick="showDetail(${idx})" title="${(r.obsRec||'').replace(/"/g,'&quot;')}">${r.obsRec || '<span style="color:#c8c8c0">—</span>'}</td>
+      <td class="obs-cell" onclick="showDetail(${idx})" title="${(r.obsComp||'').replace(/"/g,'&quot;')}">${r.obsComp || '<span style="color:#c0392b;font-size:11px">Sem retorno</span>'}</td>
+      <td>${r.linkForm && r.linkForm.startsWith('https') ? `<a href="${r.linkForm}" target="_blank" class="link-btn">Ver ↗</a>` : '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+function showDetail(idx) {
+  const r = allRows[idx];
+  const crit = isCritico(r);
+  const dias = daysDiff(r.dtEntrega);
+  document.getElementById('m-title').textContent = (r.nf || '—') + ' · ' + r.fornecedor;
+  document.getElementById('m-sub').textContent   = r.desc + (r.item ? ' — Item ' + r.item : '');
+  document.getElementById('m-body').innerHTML = `
+    <div class="modal-grid">
+      <div class="modal-field"><label>Tipo de material</label><span>${r.tipo || '—'}</span></div>
+      <div class="modal-field"><label>Código</label><span style="font-family:'DM Mono',monospace;font-size:12px">${r.codigo || '—'}</span></div>
+      <div class="modal-field"><label>Vol. reprovado</label><span style="color:${r.volRep>0?'#c0392b':'inherit'};font-weight:${r.volRep>0?500:400}">${r.volRep > 0 ? r.volRep.toLocaleString('pt-BR') + ' un.' : 'nenhum'}</span></div>
+      <div class="modal-field"><label>Vol. faltante</label><span style="color:${r.volFalt>0?'#c0392b':'inherit'};font-weight:${r.volFalt>0?500:400}">${r.volFalt > 0 ? r.volFalt.toLocaleString('pt-BR') + ' un.' : 'nenhum'}</span></div>
+      <div class="modal-field"><label>Inspeção 100%</label><span>${r.ins100 || '—'}</span></div>
+      <div class="modal-field"><label>Data de entrega</label><span>${r.dtEntrega || '—'}${dias > 0 ? ' <span style="color:#9a6200;font-size:11px">('+dias+'d)</span>' : ''}</span></div>
+      <div class="modal-field" style="grid-column:span 2"><label>Status compras</label><span>${statusBadge(r.status, r.statusRaw)}</span></div>
+    </div>
+    <hr class="modal-divider">
+    <div class="modal-obs-block">
+      <label>Obs. recebimento</label>
+      <p>${r.obsRec || '<em>Sem observações</em>'}</p>
+    </div>
+    <div class="modal-obs-block">
+      <label>Obs. compras</label>
+      <p style="${!r.obsComp ? 'color:#c0392b' : ''}">${r.obsComp || 'Sem retorno do setor de compras'}</p>
+    </div>
+    ${crit ? `<div class="modal-critico-alert">Nota crítica — ${dias} dias sem resolução. Cobrar ação imediata de compras.</div>` : ''}
+    ${r.linkForm && r.linkForm.startsWith('https') ? `<div style="margin-top:14px"><a href="${r.linkForm}" target="_blank" class="link-btn" style="font-size:13px;padding:6px 14px">Ver formulário de inspeção ↗</a></div>` : ''}
+  `;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').classList.remove('open');
+}
+
+loadData();
+</script>
+</body>
+</html>

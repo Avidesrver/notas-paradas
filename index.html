@@ -203,7 +203,7 @@ tr.row-critico:hover td { background: #faecea; }
 <div class="header">
   <div class="header-left">
     <div class="header-logo">
-      <svg viewBox="0 0 20 20"><path d="M3 4h14v2H3V4zm0 5h14v2H3V9zm0 5h9v2H3v-2z"/></svg>
+      <svg viewBox="0 0 20 20"><path d="METROS CÚBICOS" 4h14v2H3V4zm0 5h14v2H3V9zm0 5h9v2H3v-2z"/></svg>
     </div>
     <div>
       <div class="header-title">Notas paradas — tratativas compras</div>
@@ -562,8 +562,8 @@ function renderKPIs() {
     { label: 'Em andamento',     value: andamento,          cls: 'amber', sub: 'em tratativa' },
     { label: 'Concluídas',       value: concluido,          cls: 'green', sub: `${taxaConc}% resolvido` },
     { label: 'Críticas (+20d)',  value: critico,            cls: 'red',   sub: 'sem resolução' },
-    { label: 'Vol. reprovado',   value: fmtNum(totalRep),   cls: 'red',   sub: 'M³' },
-    { label: 'Vol. faltante',    value: fmtNum(totalFalt),  cls: 'amber', sub: 'm³' },
+    { label: 'Vol. reprovado',   value: fmtNum(totalRep),   cls: 'red',   sub: 'METROS CÚBICOS' },
+    { label: 'Vol. faltante',    value: fmtNum(totalFalt),  cls: 'amber', sub: 'METROS CÚBICOS' },
     { label: 'Taxa conclusão',   value: taxaConc + '%',     cls: taxaConc >= 70 ? 'green' : taxaConc >= 40 ? 'amber' : 'red', sub: 'do total' },
   ];
 

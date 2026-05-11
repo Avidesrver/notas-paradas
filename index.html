@@ -562,8 +562,8 @@ function renderKPIs() {
     { label: 'Em andamento',     value: andamento,          cls: 'amber', sub: 'em tratativa' },
     { label: 'Concluídas',       value: concluido,          cls: 'green', sub: `${taxaConc}% resolvido` },
     { label: 'Críticas (+20d)',  value: critico,            cls: 'red',   sub: 'sem resolução' },
-    { label: 'Vol. reprovado',   value: fmtNum(totalRep),   cls: 'red',   sub: 'unidades' },
-    { label: 'Vol. faltante',    value: fmtNum(totalFalt),  cls: 'amber', sub: 'unidades' },
+    { label: 'Vol. reprovado',   value: fmtNum(totalRep),   cls: 'red',   sub: 'M³' },
+    { label: 'Vol. faltante',    value: fmtNum(totalFalt),  cls: 'amber', sub: 'm³' },
     { label: 'Taxa conclusão',   value: taxaConc + '%',     cls: taxaConc >= 70 ? 'green' : taxaConc >= 40 ? 'amber' : 'red', sub: 'do total' },
   ];
 

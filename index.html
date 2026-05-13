@@ -768,55 +768,97 @@
         <div id="acao-output-conteudo" style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:24px;font-size:13px;line-height:1.8;color:#1a1a18;white-space:pre-wrap;max-height:600px;overflow-y:auto;font-family:'DM Mono',monospace;"></div>
       </div>
 
-      <!-- TRACKER DE AÇÕES -->
-      <div style="margin-top:24px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <!-- PLANOS DE AÇÃO HIERÁRQUICOS -->
+      <div style="margin-top:8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
           <div>
-            <div style="font-size:14px;font-weight:600;">Acompanhamento de ações</div>
-            <div style="font-size:12px;color:#6b6b66;margin-top:2px;">Registre as ações tomadas e acompanhe o andamento</div>
+            <div style="font-size:15px;font-weight:700;color:#1a1a18;">Planos de ação</div>
+            <div style="font-size:12px;color:#6b6b66;margin-top:2px;">Cada plano agrupa o problema principal e as tarefas de cada responsável</div>
           </div>
-          <button onclick="abrirNovaAcao()" style="font-size:12px;font-weight:500;background:#1a1a18;color:#f7f6f2;border:none;border-radius:6px;padding:7px 16px;cursor:pointer;">+ Nova ação</button>
+          <button onclick="abrirModalPlano()" style="font-size:13px;font-weight:600;background:#1a1a18;color:#f7f6f2;border:none;border-radius:8px;padding:9px 20px;cursor:pointer;display:flex;align-items:center;gap:6px;">
+            <span style="font-size:16px;line-height:1">+</span> Novo plano
+          </button>
         </div>
 
-        <!-- FORM NOVA AÇÃO -->
-        <div id="form-nova-acao" style="display:none;background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:20px;margin-bottom:14px;">
-          <div style="font-size:13px;font-weight:600;margin-bottom:14px;">Registrar nova ação</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
-            <div>
-              <label style="font-size:11px;color:#9e9e98;font-weight:500;display:block;margin-bottom:4px;">NOTA / FORNECEDOR</label>
-              <input id="acao-nf" type="text" placeholder="Ex: NF 1234 – EBATA LTDA" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid rgba(0,0,0,.15);border-radius:6px;padding:7px 10px;outline:none;background:#f0efe9;">
-            </div>
-            <div>
-              <label style="font-size:11px;color:#9e9e98;font-weight:500;display:block;margin-bottom:4px;">SETOR RESPONSÁVEL</label>
-              <select id="acao-setor" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid rgba(0,0,0,.15);border-radius:6px;padding:7px 10px;outline:none;background:#f0efe9;color:#1a1a18;">
-                <option value="">Selecionar...</option>
-                <option>Compras</option>
-                <option>Recebimento</option>
-                <option>Qualidade</option>
-                <option>Fornecedor</option>
-                <option>Logística</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size:11px;color:#9e9e98;font-weight:500;display:block;margin-bottom:4px;">PRAZO</label>
-              <input id="acao-prazo" type="date" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid rgba(0,0,0,.15);border-radius:6px;padding:7px 10px;outline:none;background:#f0efe9;">
-            </div>
-          </div>
-          <div style="margin-bottom:12px;">
-            <label style="font-size:11px;color:#9e9e98;font-weight:500;display:block;margin-bottom:4px;">AÇÃO A SER TOMADA</label>
-            <textarea id="acao-desc" rows="2" placeholder="Descreva o que precisa ser feito..." style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid rgba(0,0,0,.15);border-radius:6px;padding:7px 10px;outline:none;background:#f0efe9;resize:vertical;"></textarea>
-          </div>
-          <div style="display:flex;gap:8px;justify-content:flex-end;">
-            <button onclick="fecharNovaAcao()" style="font-size:12px;border:1px solid rgba(0,0,0,.15);border-radius:6px;padding:7px 16px;cursor:pointer;background:#fff;color:#6b6b66;">Cancelar</button>
-            <button onclick="salvarAcao()" style="font-size:12px;font-weight:500;background:#1a1a18;color:#f7f6f2;border:none;border-radius:6px;padding:7px 16px;cursor:pointer;">Salvar ação</button>
-          </div>
-        </div>
+        <!-- RESUMO RÁPIDO -->
+        <div id="planos-resumo" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;"></div>
 
-        <!-- LISTA DE AÇÕES -->
-        <div id="lista-acoes"></div>
+        <!-- LISTA DE PLANOS -->
+        <div id="lista-planos"></div>
       </div>
 
     </div><!-- /tab-acao -->
+
+    <!-- ══ MODAL NOVO/EDITAR PLANO ══ -->
+    <div id="modal-plano" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:20px;">
+      <div style="background:#fff;border-radius:12px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+        <div style="padding:24px 24px 0;display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:16px;font-weight:700;" id="modal-plano-titulo">Novo plano de ação</div>
+          <button onclick="fecharModalPlano()" style="width:30px;height:30px;border-radius:50%;border:none;background:#f0efe9;font-size:18px;cursor:pointer;color:#6b6b66;display:flex;align-items:center;justify-content:center;">×</button>
+        </div>
+        <div style="padding:20px 24px 24px;">
+
+          <!-- Título do plano -->
+          <div style="margin-bottom:14px;">
+            <label style="font-size:11px;font-weight:600;color:#9e9e98;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Título do problema / plano</label>
+            <input id="mp-titulo" type="text" placeholder="Ex: NF 0042 – EBATA LTDA – volume reprovado parado há 30 dias" style="width:100%;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;border:2px solid rgba(0,0,0,.1);border-radius:8px;padding:10px 12px;outline:none;background:#fafaf8;">
+          </div>
+
+          <!-- Descrição -->
+          <div style="margin-bottom:14px;">
+            <label style="font-size:11px;font-weight:600;color:#9e9e98;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Descrição do problema</label>
+            <textarea id="mp-desc" rows="2" placeholder="Qual é o impacto? O que está bloqueado?" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:2px solid rgba(0,0,0,.1);border-radius:8px;padding:10px 12px;outline:none;background:#fafaf8;resize:vertical;"></textarea>
+          </div>
+
+          <!-- Linha: prazo inicial + prioridade -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+            <div>
+              <label style="font-size:11px;font-weight:600;color:#9e9e98;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Prazo inicial (fixo) 🔒</label>
+              <input id="mp-prazo" type="date" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:2px solid rgba(0,0,0,.1);border-radius:8px;padding:9px 12px;outline:none;background:#fafaf8;">
+            </div>
+            <div>
+              <label style="font-size:11px;font-weight:600;color:#9e9e98;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Prioridade</label>
+              <select id="mp-prior" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:2px solid rgba(0,0,0,.1);border-radius:8px;padding:9px 12px;outline:none;background:#fafaf8;color:#1a1a18;">
+                <option value="critica">🔴 Crítica — agir hoje</option>
+                <option value="alta">🟠 Alta — esta semana</option>
+                <option value="media" selected>🟡 Média — este mês</option>
+                <option value="baixa">🟢 Baixa — quando possível</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- TAREFAS -->
+          <div style="border-top:1px solid rgba(0,0,0,.08);padding-top:18px;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <label style="font-size:12px;font-weight:700;color:#1a1a18;text-transform:uppercase;letter-spacing:.04em;">Tarefas do plano</label>
+              <button onclick="adicionarTarefaForm()" style="font-size:12px;font-weight:500;background:#f0efe9;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:5px 12px;cursor:pointer;color:#1a1a18;">+ Tarefa</button>
+            </div>
+            <div id="mp-tarefas-lista"></div>
+          </div>
+
+          <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid rgba(0,0,0,.08);padding-top:16px;">
+            <button onclick="fecharModalPlano()" style="font-size:13px;border:1px solid rgba(0,0,0,.15);border-radius:8px;padding:9px 20px;cursor:pointer;background:#fff;color:#6b6b66;">Cancelar</button>
+            <button onclick="salvarPlano()" style="font-size:13px;font-weight:600;background:#1a1a18;color:#f7f6f2;border:none;border-radius:8px;padding:9px 24px;cursor:pointer;">Salvar plano</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ MODAL CONCLUIR PLANO ══ -->
+    <div id="modal-concluir" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:20px;">
+      <div style="background:#fff;border-radius:12px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+        <div style="padding:24px;">
+          <div style="font-size:15px;font-weight:700;margin-bottom:6px;">Concluir plano</div>
+          <div style="font-size:13px;color:#6b6b66;margin-bottom:18px;" id="mc-subtitulo"></div>
+          <label style="font-size:11px;font-weight:600;color:#9e9e98;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Data de conclusão</label>
+          <input id="mc-data" type="date" style="width:100%;font-family:'DM Sans',sans-serif;font-size:14px;border:2px solid rgba(0,0,0,.1);border-radius:8px;padding:10px 12px;outline:none;background:#fafaf8;margin-bottom:18px;">
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button onclick="fecharModalConcluir()" style="font-size:13px;border:1px solid rgba(0,0,0,.15);border-radius:8px;padding:8px 18px;cursor:pointer;background:#fff;color:#6b6b66;">Cancelar</button>
+            <button onclick="confirmarConclusao()" style="font-size:13px;font-weight:600;background:#2d6a1f;color:#fff;border:none;border-radius:8px;padding:8px 20px;cursor:pointer;">✓ Confirmar conclusão</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div><!-- /#content -->
 </div>
@@ -1779,109 +1821,452 @@ function copiarOutput() {
   });
 }
 
-// ── TRACKER DE AÇÕES ──
-function abrirNovaAcao() {
-  document.getElementById('form-nova-acao').style.display = 'block';
-  // Pré-preenche prazo com 2 dias
-  const d = new Date(Date.now() + 2 * 86400000);
-  document.getElementById('acao-prazo').value = d.toISOString().slice(0,10);
+// ══════════════════════════════════════════
+// CENTRAL DE AÇÃO — PLANOS HIERÁRQUICOS
+// ══════════════════════════════════════════
+
+let planos = JSON.parse(localStorage.getItem('notas-planos-v2') || '[]');
+let planoEditandoId = null;
+let planoConcluindoId = null;
+
+const PRIOR_CONFIG = {
+  critica: { label: '🔴 Crítica',  bg: '#fdf0ef', border: '#f5c6c3', color: '#c0392b' },
+  alta:    { label: '🟠 Alta',     bg: '#fef8ec', border: '#f5d98a', color: '#9a6200' },
+  media:   { label: '🟡 Média',    bg: '#fefbe8', border: '#f0e060', color: '#7a6800' },
+  baixa:   { label: '🟢 Baixa',    bg: '#edf6e8', border: '#a8d898', color: '#2d6a1f' },
+};
+const SETOR_COLORS = {
+  'Compras':'#1a4f8a','Recebimento':'#9a6200','Qualidade':'#6a2d8a',
+  'Fornecedor':'#c0392b','Logística':'#2d6a1f','Outro':'#6b6b66'
+};
+
+function salvarPlanos() {
+  localStorage.setItem('notas-planos-v2', JSON.stringify(planos));
 }
 
-function fecharNovaAcao() {
-  document.getElementById('form-nova-acao').style.display = 'none';
+// ── RENDER CENTRAL ──
+function renderAcao() {
+  const criticos = allRows.filter(isCritico);
+  const volCritico = criticos.reduce((a, r) => a + r.volRep + r.volFalt, 0);
+  document.getElementById('acao-alerta-titulo').textContent =
+    criticos.length > 0
+      ? `${criticos.length} nota${criticos.length > 1 ? 's' : ''} crítica${criticos.length > 1 ? 's' : ''} exigem ação imediata — ${volCritico.toLocaleString('pt-BR')} un. de volume em risco`
+      : '✅ Nenhuma nota crítica no momento';
+  const fornCriticos = [...new Set(criticos.map(r => r.fornecedor))];
+  document.getElementById('acao-alerta-sub').textContent =
+    criticos.length > 0
+      ? `Fornecedores: ${fornCriticos.slice(0,5).join(', ')}${fornCriticos.length > 5 ? ` e mais ${fornCriticos.length-5}` : ''}`
+      : 'Continue monitorando o painel de evolução mensal.';
+
+  renderResumoPlanosRapido();
+  renderListaPlanos();
 }
 
-function salvarAcao() {
-  const nf     = document.getElementById('acao-nf').value.trim();
-  const setor  = document.getElementById('acao-setor').value;
-  const prazo  = document.getElementById('acao-prazo').value;
-  const desc   = document.getElementById('acao-desc').value.trim();
+function renderResumoPlanosRapido() {
+  const total     = planos.length;
+  const abertos   = planos.filter(p => p.status === 'aberto').length;
+  const atrasados = planos.filter(p => p.status === 'aberto' && p.prazo && new Date(p.prazo) < new Date()).length;
+  const concluidos= planos.filter(p => p.status === 'concluido').length;
 
-  if (!nf || !setor || !desc) {
-    alert('Preencha nota/fornecedor, setor e a ação.');
+  const items = [
+    { label: 'Planos abertos',   val: abertos,    color: '#1a4f8a' },
+    { label: 'Atrasados',        val: atrasados,  color: '#c0392b' },
+    { label: 'Concluídos',       val: concluidos, color: '#2d6a1f' },
+    { label: 'Total de planos',  val: total,      color: '#6b6b66' },
+  ];
+
+  document.getElementById('planos-resumo').innerHTML = items.map(i => `
+    <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:14px 16px;">
+      <div style="font-size:11px;font-weight:600;color:#9e9e98;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">${i.label}</div>
+      <div style="font-size:26px;font-weight:700;color:${i.color};letter-spacing:-0.03em;">${i.val}</div>
+    </div>`).join('');
+}
+
+// ── RENDER LISTA DE PLANOS ──
+function renderListaPlanos() {
+  const el = document.getElementById('lista-planos');
+  if (planos.length === 0) {
+    el.innerHTML = `
+      <div style="background:#fff;border:2px dashed rgba(0,0,0,.1);border-radius:12px;padding:48px;text-align:center;">
+        <div style="font-size:32px;margin-bottom:12px;">📋</div>
+        <div style="font-size:15px;font-weight:600;color:#1a1a18;margin-bottom:6px;">Nenhum plano de ação ainda</div>
+        <div style="font-size:13px;color:#9e9e98;margin-bottom:20px;">Clique em "Novo plano" ou gere um plano automático a partir das notas críticas</div>
+        <button onclick="abrirModalPlano()" style="font-size:13px;font-weight:600;background:#1a1a18;color:#fff;border:none;border-radius:8px;padding:10px 24px;cursor:pointer;">+ Criar primeiro plano</button>
+      </div>`;
     return;
   }
 
-  acoesRegistradas.unshift({
-    id: Date.now(),
-    nf, setor, prazo, desc,
-    status: 'aberta',
-    criadaEm: new Date().toLocaleDateString('pt-BR'),
+  // Ordena: críticos primeiro, depois por prazo
+  const ordemPrior = { critica: 0, alta: 1, media: 2, baixa: 3 };
+  const sorted = [...planos].sort((a, b) => {
+    if (a.status !== b.status) return a.status === 'aberto' ? -1 : 1;
+    const dp = (ordemPrior[a.prioridade]||2) - (ordemPrior[b.prioridade]||2);
+    if (dp !== 0) return dp;
+    return (a.prazo||'') < (b.prazo||'') ? -1 : 1;
   });
 
-  localStorage.setItem('notas-acoes', JSON.stringify(acoesRegistradas));
-  fecharNovaAcao();
-  document.getElementById('acao-nf').value = '';
-  document.getElementById('acao-setor').value = '';
-  document.getElementById('acao-desc').value = '';
-  renderListaAcoes();
+  el.innerHTML = sorted.map(p => renderCardPlano(p)).join('');
 }
 
-function toggleStatusAcao(id) {
-  const a = acoesRegistradas.find(x => x.id === id);
-  if (!a) return;
-  a.status = a.status === 'aberta' ? 'concluida' : 'aberta';
-  localStorage.setItem('notas-acoes', JSON.stringify(acoesRegistradas));
-  renderListaAcoes();
+function renderCardPlano(p) {
+  const pc     = PRIOR_CONFIG[p.prioridade] || PRIOR_CONFIG.media;
+  const hoje   = new Date(); hoje.setHours(0,0,0,0);
+  const prazoD = p.prazo ? new Date(p.prazo + 'T00:00:00') : null;
+  const atrasado = p.status === 'aberto' && prazoD && prazoD < hoje;
+  const diasAtraso = atrasado ? Math.floor((hoje - prazoD) / 86400000) : 0;
+
+  // Status conclusão
+  let conclusaoInfo = '';
+  if (p.status === 'concluido' && p.dataConclusao && p.prazo) {
+    const dc = new Date(p.dataConclusao + 'T00:00:00');
+    const pr = new Date(p.prazo + 'T00:00:00');
+    const diff = Math.floor((dc - pr) / 86400000);
+    if (diff <= 0) {
+      conclusaoInfo = `<span style="font-size:11px;font-weight:600;color:#2d6a1f;background:#edf6e8;border-radius:99px;padding:2px 9px;">✅ No prazo${diff < 0 ? ` (${Math.abs(diff)}d antes)` : ''}</span>`;
+    } else {
+      conclusaoInfo = `<span style="font-size:11px;font-weight:600;color:#c0392b;background:#fdf0ef;border-radius:99px;padding:2px 9px;">⚠️ ${diff}d de atraso</span>`;
+    }
+  }
+
+  // Tarefas
+  const tarefas = p.tarefas || [];
+  const tConcluidas = tarefas.filter(t => t.concluida).length;
+  const tTotal = tarefas.length;
+  const pctTarefas = tTotal > 0 ? Math.round((tConcluidas / tTotal) * 100) : 0;
+
+  const tarefasHTML = tarefas.map((t, ti) => {
+    const tAtrasada = t.prazo && !t.concluida && new Date(t.prazo + 'T00:00:00') < hoje;
+    const sc = SETOR_COLORS[t.setor] || '#6b6b66';
+    return `
+      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;background:${t.concluida ? '#f7f6f2' : '#fff'};border:1px solid ${tAtrasada ? '#f5c6c3' : 'rgba(0,0,0,.07)'};margin-bottom:6px;transition:all .15s;">
+        <button onclick="toggleTarefa('${p.id}',${ti})" style="width:20px;height:20px;min-width:20px;border-radius:50%;border:2px solid ${t.concluida ? '#3a8a28' : '#d0d0c8'};background:${t.concluida ? '#3a8a28' : '#fff'};cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;font-size:11px;color:#fff;">${t.concluida ? '✓' : ''}</button>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px;">
+            <span style="font-size:13px;font-weight:600;color:${t.concluida ? '#9e9e98' : '#1a1a18'};${t.concluida ? 'text-decoration:line-through;' : ''}">${t.responsavel || '—'}</span>
+            <span style="font-size:11px;font-weight:500;background:${sc}18;color:${sc};border-radius:99px;padding:1px 8px;">${t.setor || '—'}</span>
+            ${t.prazo ? `<span style="font-size:11px;color:${tAtrasada ? '#c0392b' : '#9e9e98'};">📅 ${fmtDate(t.prazo)}${tAtrasada ? ' ⚠️' : ''}</span>` : ''}
+          </div>
+          <div style="font-size:12px;color:${t.concluida ? '#b0b0a8' : '#6b6b66'};">${t.desc || '—'}</div>
+        </div>
+        ${p.status === 'aberto' ? `<button onclick="editarTarefaInline('${p.id}',${ti})" style="font-size:11px;color:#9e9e98;background:none;border:none;cursor:pointer;padding:2px 4px;" title="Editar">✏️</button>` : ''}
+      </div>`;
+  }).join('');
+
+  const concluido = p.status === 'concluido';
+
+  return `
+    <div id="plano-${p.id}" style="background:#fff;border:1px solid ${atrasado ? '#f5c6c3' : concluido ? 'rgba(0,0,0,.06)' : 'rgba(0,0,0,.1)'};border-radius:12px;margin-bottom:14px;overflow:hidden;opacity:${concluido ? '.75' : '1'};">
+
+      <!-- CABEÇALHO DO PLANO -->
+      <div style="padding:18px 20px;border-bottom:1px solid rgba(0,0,0,.06);background:${atrasado ? '#fdf5f4' : concluido ? '#f9f9f7' : '#fafaf8'};">
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+              <span style="font-size:15px;font-weight:700;color:#1a1a18;">${p.titulo}</span>
+              <span style="font-size:11px;font-weight:600;background:${pc.bg};border:1px solid ${pc.border};color:${pc.color};border-radius:99px;padding:2px 10px;">${pc.label}</span>
+              ${concluido ? `<span style="font-size:11px;font-weight:600;background:#edf6e8;color:#2d6a1f;border-radius:99px;padding:2px 10px;">✅ Concluído</span>` : ''}
+              ${atrasado ? `<span style="font-size:11px;font-weight:700;background:#fdf0ef;color:#c0392b;border-radius:99px;padding:2px 10px;">🔴 ${diasAtraso}d atrasado</span>` : ''}
+              ${conclusaoInfo}
+            </div>
+            ${p.desc ? `<div style="font-size:13px;color:#6b6b66;margin-bottom:8px;">${p.desc}</div>` : ''}
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+              <span style="font-size:12px;color:#9e9e98;">🔒 Prazo inicial: <strong style="color:${atrasado ? '#c0392b' : '#1a1a18'}">${prazoD ? fmtDate(p.prazo) : '—'}</strong></span>
+              ${p.dataConclusao ? `<span style="font-size:12px;color:#9e9e98;">✓ Concluído em: <strong style="color:#2d6a1f">${fmtDate(p.dataConclusao)}</strong></span>` : ''}
+              <span style="font-size:12px;color:#9e9e98;">📌 Criado: ${p.criadoEm}</span>
+              ${tTotal > 0 ? `<span style="font-size:12px;color:#9e9e98;">${tConcluidas}/${tTotal} tarefas concluídas</span>` : ''}
+            </div>
+          </div>
+          <!-- AÇÕES DO PLANO -->
+          <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+            ${!concluido ? `<button onclick="abrirModalPlano('${p.id}')" style="font-size:12px;font-weight:500;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:6px 12px;cursor:pointer;background:#fff;color:#1a1a18;">✏️ Editar</button>` : ''}
+            ${!concluido ? `<button onclick="abrirModalConcluir('${p.id}')" style="font-size:12px;font-weight:600;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;background:#2d6a1f;color:#fff;">✓ Concluir</button>` : ''}
+            <button onclick="excluirPlano('${p.id}')" style="font-size:12px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:6px 10px;cursor:pointer;background:#fff;color:#c0392b;" title="Excluir plano">🗑</button>
+          </div>
+        </div>
+
+        <!-- BARRA DE PROGRESSO DAS TAREFAS -->
+        ${tTotal > 0 ? `
+        <div style="margin-top:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:11px;color:#9e9e98;font-weight:500;">Progresso das tarefas</span>
+            <span style="font-size:11px;font-weight:700;color:${pctTarefas === 100 ? '#2d6a1f' : '#1a1a18'}">${pctTarefas}%</span>
+          </div>
+          <div style="height:6px;background:#f0efe9;border-radius:99px;overflow:hidden;">
+            <div style="height:100%;width:${pctTarefas}%;background:${pctTarefas === 100 ? '#3a8a28' : '#1a4f8a'};border-radius:99px;transition:width .4s;"></div>
+          </div>
+        </div>` : ''}
+      </div>
+
+      <!-- TAREFAS -->
+      ${tTotal > 0 ? `
+      <div style="padding:14px 20px 6px;">
+        <div style="font-size:11px;font-weight:600;color:#9e9e98;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Tarefas (${tTotal})</div>
+        ${tarefasHTML}
+      </div>` : `
+      <div style="padding:14px 20px;font-size:13px;color:#b0b0a8;font-style:italic;">Nenhuma tarefa cadastrada neste plano.</div>`}
+
+      <!-- ADD TAREFA INLINE (se aberto) -->
+      ${!concluido ? `
+      <div style="padding:0 20px 16px;">
+        <button onclick="adicionarTarefaRapida('${p.id}')" style="font-size:12px;font-weight:500;border:1px dashed rgba(0,0,0,.15);border-radius:6px;padding:6px 14px;cursor:pointer;background:none;color:#9e9e98;width:100%;text-align:center;">+ Adicionar tarefa</button>
+        <div id="form-tarefa-rapida-${p.id}" style="display:none;margin-top:10px;background:#f7f6f2;border-radius:8px;padding:14px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
+            <div>
+              <label style="font-size:10px;font-weight:600;color:#9e9e98;display:block;margin-bottom:3px;">RESPONSÁVEL</label>
+              <input id="tr-resp-${p.id}" type="text" placeholder="Nome de quem faz" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:7px 9px;outline:none;background:#fff;">
+            </div>
+            <div>
+              <label style="font-size:10px;font-weight:600;color:#9e9e98;display:block;margin-bottom:3px;">SETOR</label>
+              <select id="tr-setor-${p.id}" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:7px 9px;outline:none;background:#fff;color:#1a1a18;">
+                <option value="">Selecionar...</option>
+                <option>Compras</option><option>Recebimento</option><option>Qualidade</option>
+                <option>Fornecedor</option><option>Logística</option><option>Outro</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:10px;font-weight:600;color:#9e9e98;display:block;margin-bottom:3px;">PRAZO DA TAREFA</label>
+              <input id="tr-prazo-${p.id}" type="date" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:7px 9px;outline:none;background:#fff;">
+            </div>
+          </div>
+          <div style="margin-bottom:8px;">
+            <label style="font-size:10px;font-weight:600;color:#9e9e98;display:block;margin-bottom:3px;">O QUE FAZER</label>
+            <input id="tr-desc-${p.id}" type="text" placeholder="Ex: Entrar em contato com o fornecedor e solicitar NF corrigida" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:7px 9px;outline:none;background:#fff;">
+          </div>
+          <div style="display:flex;gap:6px;justify-content:flex-end;">
+            <button onclick="document.getElementById('form-tarefa-rapida-${p.id}').style.display='none'" style="font-size:12px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:6px 12px;cursor:pointer;background:#fff;color:#6b6b66;">Cancelar</button>
+            <button onclick="salvarTarefaRapida('${p.id}')" style="font-size:12px;font-weight:600;background:#1a1a18;color:#fff;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;">Salvar tarefa</button>
+          </div>
+        </div>
+      </div>` : ''}
+
+    </div>`;
 }
 
-function excluirAcao(id) {
-  acoesRegistradas = acoesRegistradas.filter(x => x.id !== id);
-  localStorage.setItem('notas-acoes', JSON.stringify(acoesRegistradas));
-  renderListaAcoes();
+function fmtDate(str) {
+  if (!str) return '—';
+  const d = new Date(str + 'T00:00:00');
+  return d.toLocaleDateString('pt-BR');
 }
 
-function renderListaAcoes() {
-  const el = document.getElementById('lista-acoes');
-  if (acoesRegistradas.length === 0) {
-    el.innerHTML = `<div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:32px;text-align:center;color:#9e9e98;font-size:13px;">Nenhuma ação registrada ainda. Clique em "+ Nova ação" ou gere um plano de ação acima.</div>`;
+// ── MODAL PLANO ──
+let tarefasTemp = [];
+
+function abrirModalPlano(id) {
+  planoEditandoId = id || null;
+  tarefasTemp = [];
+  const p = id ? planos.find(x => x.id === id) : null;
+
+  document.getElementById('modal-plano-titulo').textContent = p ? 'Editar plano' : 'Novo plano de ação';
+  document.getElementById('mp-titulo').value = p ? p.titulo : '';
+  document.getElementById('mp-desc').value   = p ? p.desc   : '';
+  document.getElementById('mp-prior').value  = p ? p.prioridade : 'media';
+
+  if (p) {
+    document.getElementById('mp-prazo').value = p.prazo || '';
+    document.getElementById('mp-prazo').disabled = true;
+    document.getElementById('mp-prazo').style.opacity = '.6';
+    document.getElementById('mp-prazo').title = 'Prazo inicial não pode ser alterado';
+    tarefasTemp = JSON.parse(JSON.stringify(p.tarefas || []));
+  } else {
+    document.getElementById('mp-prazo').value = '';
+    document.getElementById('mp-prazo').disabled = false;
+    document.getElementById('mp-prazo').style.opacity = '1';
+    document.getElementById('mp-prazo').title = '';
+  }
+
+  renderTarefasForm();
+  document.getElementById('modal-plano').style.display = 'flex';
+}
+
+function fecharModalPlano() {
+  document.getElementById('modal-plano').style.display = 'none';
+}
+
+function renderTarefasForm() {
+  const el = document.getElementById('mp-tarefas-lista');
+  if (tarefasTemp.length === 0) {
+    el.innerHTML = `<div style="font-size:12px;color:#b0b0a8;padding:8px 0;font-style:italic;">Nenhuma tarefa ainda. Clique em "+ Tarefa" para adicionar.</div>`;
     return;
   }
+  el.innerHTML = tarefasTemp.map((t, i) => `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px;background:#f7f6f2;border-radius:8px;padding:10px 12px;">
+      <div>
+        <label style="font-size:10px;font-weight:600;color:#9e9e98;display:block;margin-bottom:3px;">RESPONSÁVEL</label>
+        <input type="text" value="${t.responsavel||''}" onchange="tarefasTemp[${i}].responsavel=this.value" placeholder="Nome" style="width:100%;font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:6px 8px;outline:none;background:#fff;">
+      </div>
+      <div>
+        <label style="font-size:10px;font-weight:600;color:#9e9e98;display:block;margin-bottom:3px;">SETOR</label>
+        <select onchange="tarefasTemp[${i}].setor=this.value" style="width:100%;font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:6px 8px;outline:none;background:#fff;color:#1a1a18;">
+          ${['Compras','Recebimento','Qualidade','Fornecedor','Logística','Outro'].map(s => `<option value="${s}" ${t.setor===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <label style="font-size:10px;font-weight:600;color:#9e9e98;display:block;margin-bottom:3px;">PRAZO</label>
+        <input type="date" value="${t.prazo||''}" onchange="tarefasTemp[${i}].prazo=this.value" style="width:100%;font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:6px 8px;outline:none;background:#fff;">
+      </div>
+      <button onclick="tarefasTemp.splice(${i},1);renderTarefasForm()" style="font-size:18px;background:none;border:none;color:#d0d0c8;cursor:pointer;padding:0 4px;align-self:center;" title="Remover">×</button>
+      <div style="grid-column:1/-1;">
+        <label style="font-size:10px;font-weight:600;color:#9e9e98;display:block;margin-bottom:3px;">O QUE FAZER</label>
+        <input type="text" value="${t.desc||''}" onchange="tarefasTemp[${i}].desc=this.value" placeholder="Descreva a tarefa..." style="width:100%;font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:6px 8px;outline:none;background:#fff;">
+      </div>
+    </div>`).join('');
+}
 
-  const setorColor = { 'Compras':'#1a4f8a', 'Recebimento':'#9a6200', 'Qualidade':'#6a2d8a', 'Fornecedor':'#c0392b', 'Logística':'#2d6a1f' };
+function adicionarTarefaForm() {
+  tarefasTemp.push({ responsavel:'', setor:'Compras', prazo:'', desc:'', concluida:false });
+  renderTarefasForm();
+}
 
-  const abertas    = acoesRegistradas.filter(a => a.status === 'aberta');
-  const concluidas = acoesRegistradas.filter(a => a.status === 'concluida');
+function salvarPlano() {
+  const titulo = document.getElementById('mp-titulo').value.trim();
+  const desc   = document.getElementById('mp-desc').value.trim();
+  const prazo  = document.getElementById('mp-prazo').value;
+  const prior  = document.getElementById('mp-prior').value;
 
-  let html = '';
+  if (!titulo) { alert('Informe o título do plano.'); return; }
+  if (!prazo && !planoEditandoId) { alert('Informe o prazo inicial.'); return; }
 
-  if (abertas.length > 0) {
-    html += `<div style="font-size:11px;font-weight:600;color:#9e9e98;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Em aberto (${abertas.length})</div>`;
-    html += abertas.map(a => {
-      const vencida = a.prazo && new Date(a.prazo) < new Date();
-      const cor = setorColor[a.setor] || '#6b6b66';
-      return `
-        <div style="background:#fff;border:1px solid ${vencida ? '#f5c6c3' : 'rgba(0,0,0,.09)'};border-radius:10px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:flex-start;gap:14px;${vencida ? 'background:#fdf0ef;' : ''}">
-          <button onclick="toggleStatusAcao(${a.id})" style="width:20px;height:20px;border-radius:50%;border:2px solid #d0d0c8;background:#fff;cursor:pointer;flex-shrink:0;margin-top:1px;" title="Marcar como concluída"></button>
-          <div style="flex:1;min-width:0;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
-              <span style="font-size:13px;font-weight:600;color:#1a1a18;">${a.nf}</span>
-              <span style="font-size:11px;font-weight:500;background:${cor}18;color:${cor};border-radius:99px;padding:2px 8px;">${a.setor}</span>
-              ${vencida ? '<span style="font-size:11px;font-weight:600;color:#c0392b;">⚠️ Vencida</span>' : ''}
-              ${a.prazo ? `<span style="font-size:11px;color:#9e9e98;">Prazo: ${new Date(a.prazo + 'T00:00:00').toLocaleDateString('pt-BR')}</span>` : ''}
-            </div>
-            <div style="font-size:13px;color:#6b6b66;">${a.desc}</div>
-          </div>
-          <button onclick="excluirAcao(${a.id})" style="font-size:16px;background:none;border:none;color:#d0d0c8;cursor:pointer;flex-shrink:0;" title="Excluir">×</button>
-        </div>`;
-    }).join('');
+  if (planoEditandoId) {
+    const p = planos.find(x => x.id === planoEditandoId);
+    if (p) {
+      p.titulo = titulo;
+      p.desc   = desc;
+      p.prioridade = prior;
+      p.tarefas = tarefasTemp;
+    }
+  } else {
+    planos.unshift({
+      id: 'p' + Date.now(),
+      titulo, desc, prazo, prioridade: prior,
+      status: 'aberto',
+      tarefas: tarefasTemp,
+      criadoEm: new Date().toLocaleDateString('pt-BR'),
+      dataConclusao: null,
+    });
   }
 
-  if (concluidas.length > 0) {
-    html += `<div style="font-size:11px;font-weight:600;color:#9e9e98;text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px;">Concluídas (${concluidas.length})</div>`;
-    html += concluidas.map(a => `
-      <div style="background:#f7f6f2;border:1px solid rgba(0,0,0,.06);border-radius:10px;padding:12px 18px;margin-bottom:6px;display:flex;align-items:center;gap:14px;opacity:.7;">
-        <button onclick="toggleStatusAcao(${a.id})" style="width:20px;height:20px;border-radius:50%;border:2px solid #3a8a28;background:#3a8a28;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;" title="Reabrir">✓</button>
-        <div style="flex:1;min-width:0;">
-          <span style="font-size:13px;font-weight:500;color:#9e9e98;text-decoration:line-through;">${a.nf}</span>
-          <span style="font-size:11px;color:#9e9e98;margin-left:8px;">${a.setor}</span>
-        </div>
-        <button onclick="excluirAcao(${a.id})" style="font-size:16px;background:none;border:none;color:#d0d0c8;cursor:pointer;" title="Excluir">×</button>
-      </div>`
-    ).join('');
-  }
+  salvarPlanos();
+  fecharModalPlano();
+  renderResumoPlanosRapido();
+  renderListaPlanos();
+}
 
-  el.innerHTML = html;
+// ── TAREFA RÁPIDA INLINE ──
+function adicionarTarefaRapida(pid) {
+  document.getElementById('form-tarefa-rapida-' + pid).style.display = 'block';
+}
+
+function salvarTarefaRapida(pid) {
+  const resp  = document.getElementById('tr-resp-'  + pid).value.trim();
+  const setor = document.getElementById('tr-setor-' + pid).value;
+  const prazo = document.getElementById('tr-prazo-' + pid).value;
+  const desc  = document.getElementById('tr-desc-'  + pid).value.trim();
+
+  if (!resp || !desc) { alert('Informe o responsável e o que deve ser feito.'); return; }
+
+  const p = planos.find(x => x.id === pid);
+  if (p) {
+    if (!p.tarefas) p.tarefas = [];
+    p.tarefas.push({ responsavel: resp, setor, prazo, desc, concluida: false });
+    salvarPlanos();
+    renderListaPlanos();
+    renderResumoPlanosRapido();
+  }
+}
+
+// ── TOGGLE TAREFA ──
+function toggleTarefa(pid, ti) {
+  const p = planos.find(x => x.id === pid);
+  if (!p || !p.tarefas[ti]) return;
+  p.tarefas[ti].concluida = !p.tarefas[ti].concluida;
+  salvarPlanos();
+  renderListaPlanos();
+  renderResumoPlanosRapido();
+}
+
+// ── EDITAR TAREFA INLINE ──
+function editarTarefaInline(pid, ti) {
+  planoEditandoId = pid;
+  const p = planos.find(x => x.id === pid);
+  if (!p) return;
+  tarefasTemp = JSON.parse(JSON.stringify(p.tarefas || []));
+  // Abre modal no modo edição
+  document.getElementById('modal-plano-titulo').textContent = 'Editar plano — tarefas';
+  document.getElementById('mp-titulo').value = p.titulo;
+  document.getElementById('mp-desc').value   = p.desc || '';
+  document.getElementById('mp-prior').value  = p.prioridade;
+  document.getElementById('mp-prazo').value  = p.prazo || '';
+  document.getElementById('mp-prazo').disabled = true;
+  document.getElementById('mp-prazo').style.opacity = '.6';
+  renderTarefasForm();
+  document.getElementById('modal-plano').style.display = 'flex';
+  // Scroll para a tarefa
+  setTimeout(() => {
+    const items = document.getElementById('mp-tarefas-lista').children;
+    if (items[ti]) items[ti].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
+}
+
+// ── CONCLUIR PLANO ──
+function abrirModalConcluir(pid) {
+  planoConcluindoId = pid;
+  const p = planos.find(x => x.id === pid);
+  document.getElementById('mc-subtitulo').textContent = p ? p.titulo : '';
+  document.getElementById('mc-data').value = new Date().toISOString().slice(0,10);
+  document.getElementById('modal-concluir').style.display = 'flex';
+}
+
+function fecharModalConcluir() {
+  document.getElementById('modal-concluir').style.display = 'none';
+}
+
+function confirmarConclusao() {
+  const data = document.getElementById('mc-data').value;
+  if (!data) { alert('Informe a data de conclusão.'); return; }
+  const p = planos.find(x => x.id === planoConcluindoId);
+  if (p) {
+    p.status = 'concluido';
+    p.dataConclusao = data;
+    salvarPlanos();
+  }
+  fecharModalConcluir();
+  renderResumoPlanosRapido();
+  renderListaPlanos();
+}
+
+// ── EXCLUIR PLANO ──
+function excluirPlano(pid) {
+  if (!confirm('Excluir este plano de ação? Essa ação não pode ser desfeita.')) return;
+  planos = planos.filter(x => x.id !== pid);
+  salvarPlanos();
+  renderResumoPlanosRapido();
+  renderListaPlanos();
+}
+
+// ── GERADOR DE PLANO AUTOMÁTICO ──
+function gerarPlanoAcao() {
+  const criticos = allRows.filter(isCritico).sort((a,b) => scoreCritico(b) - scoreCritico(a));
+  if (criticos.length === 0) {
+    mostrarOutput('📋 Plano de Ação', '✅ Nenhuma nota crítica encontrada.');
+    return;
+  }
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  const prazo2d = new Date(Date.now() + 2 * 86400000).toLocaleDateString('pt-BR');
+  let txt = `PLANO DE AÇÃO — NOTAS PARADAS CRÍTICAS\nGerado em: ${hoje}\n${'─'.repeat(60)}\n\n`;
+  txt += `RESUMO\n  Notas críticas: ${criticos.length}  |  Volume em risco: ${criticos.reduce((a,r)=>a+r.volRep+r.volFalt,0).toLocaleString('pt-BR')} un.\n\n${'─'.repeat(60)}\n\n`;
+  criticos.forEach((r, i) => {
+    const dias = daysDiff(r.dtEntrega);
+    const vol  = r.volRep + r.volFalt;
+    txt += `${i+1}. ${r.fornecedor} — NF ${r.nf||'—'} (${dias} dias parada)\n`;
+    txt += `   Desc: ${r.desc||'—'}\n`;
+    if (vol > 0) txt += `   Volume: ${vol.toLocaleString('pt-BR')} un.\n`;
+    txt += `   Status: ${r.statusRaw||'Pendente'}\n`;
+    if (r.obsComp) txt += `   Obs. compras: "${r.obsComp}"\n`;
+    txt += `   ➤ AÇÃO: Contatar fornecedor e exigir posição até ${prazo2d}\n`;
+    txt += `   ➤ RESPONSÁVEL: Compras  |  PRAZO: ${prazo2d}\n\n`;
+  });
+  txt += `${'─'.repeat(60)}\nPRÓXIMA REVISÃO: ${new Date(Date.now()+3*86400000).toLocaleDateString('pt-BR')}`;
+  mostrarOutput('📋 Plano de Ação (texto)', txt);
 }
 
 loadData();

@@ -570,6 +570,7 @@
   <button class="tab-btn active" onclick="switchTab('visao-geral', this)">Visão geral</button>
   <button class="tab-btn" onclick="switchTab('evolucao', this)">Evolução mensal</button>
   <button class="tab-btn" onclick="switchTab('tabela', this)">Tabela detalhada</button>
+  <button class="tab-btn" id="tab-btn-acao" onclick="switchTab('acao', this)" style="color:#c0392b;font-weight:600">🚨 Central de Ação</button>
 </div>
 
 <div class="main">
@@ -716,6 +717,106 @@
         </div>
       </div>
     </div>
+
+    <!-- ==================== ABA: CENTRAL DE AÇÃO ==================== -->
+    <div id="tab-acao" class="tab-content">
+
+      <!-- ALERTA CRÍTICO -->
+      <div id="acao-alerta" style="background:#fdf0ef;border:1px solid #f5c6c3;border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:14px;">
+        <span style="font-size:28px">🚨</span>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#c0392b" id="acao-alerta-titulo">Carregando...</div>
+          <div style="font-size:12px;color:#6b6b66;margin-top:2px" id="acao-alerta-sub"></div>
+        </div>
+        <button onclick="renderAcao()" style="margin-left:auto;font-size:12px;font-weight:500;background:#c0392b;color:#fff;border:none;border-radius:6px;padding:7px 16px;cursor:pointer;">↻ Atualizar</button>
+      </div>
+
+      <!-- GERADOR DE AÇÕES -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;" id="acao-gerador-grid">
+
+        <!-- PLANO DE AÇÃO -->
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:18px 20px;">
+          <div style="font-size:12px;font-weight:600;color:#6b6b66;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">📋 Plano de ação</div>
+          <div style="font-size:13px;color:#1a1a18;margin-bottom:14px;">Priorizado por dias parado × volume</div>
+          <button onclick="gerarPlanoAcao()" style="width:100%;font-size:13px;font-weight:500;background:#1a1a18;color:#f7f6f2;border:none;border-radius:6px;padding:9px;cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">Gerar plano agora</button>
+        </div>
+
+        <!-- EMAILS -->
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:18px 20px;">
+          <div style="font-size:12px;font-weight:600;color:#6b6b66;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">✉️ E-mails de cobrança</div>
+          <div style="font-size:13px;color:#1a1a18;margin-bottom:14px;">Por setor: compras, recebimento, qualidade</div>
+          <button onclick="gerarEmails()" style="width:100%;font-size:13px;font-weight:500;background:#1a4f8a;color:#fff;border:none;border-radius:6px;padding:9px;cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">Gerar e-mails</button>
+        </div>
+
+        <!-- REUNIÃO -->
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:18px 20px;">
+          <div style="font-size:12px;font-weight:600;color:#6b6b66;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">📅 Pauta de reunião</div>
+          <div style="font-size:13px;color:#1a1a18;margin-bottom:14px;">Estruturada para cobrar cada setor</div>
+          <button onclick="gerarReuniao()" style="width:100%;font-size:13px;font-weight:500;background:#2d6a1f;color:#fff;border:none;border-radius:6px;padding:9px;cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">Gerar pauta</button>
+        </div>
+      </div>
+
+      <!-- ÁREA DE OUTPUT -->
+      <div id="acao-output" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-size:14px;font-weight:600;" id="acao-output-titulo"></div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="copiarOutput()" style="font-size:12px;font-weight:500;border:1px solid rgba(0,0,0,.15);border-radius:6px;padding:6px 14px;cursor:pointer;background:#fff;color:#1a1a18;">📋 Copiar</button>
+            <button onclick="fecharOutput()" style="font-size:12px;font-weight:500;border:1px solid rgba(0,0,0,.15);border-radius:6px;padding:6px 14px;cursor:pointer;background:#fff;color:#6b6b66;">✕ Fechar</button>
+          </div>
+        </div>
+        <div id="acao-output-conteudo" style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:24px;font-size:13px;line-height:1.8;color:#1a1a18;white-space:pre-wrap;max-height:600px;overflow-y:auto;font-family:'DM Mono',monospace;"></div>
+      </div>
+
+      <!-- TRACKER DE AÇÕES -->
+      <div style="margin-top:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div>
+            <div style="font-size:14px;font-weight:600;">Acompanhamento de ações</div>
+            <div style="font-size:12px;color:#6b6b66;margin-top:2px;">Registre as ações tomadas e acompanhe o andamento</div>
+          </div>
+          <button onclick="abrirNovaAcao()" style="font-size:12px;font-weight:500;background:#1a1a18;color:#f7f6f2;border:none;border-radius:6px;padding:7px 16px;cursor:pointer;">+ Nova ação</button>
+        </div>
+
+        <!-- FORM NOVA AÇÃO -->
+        <div id="form-nova-acao" style="display:none;background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:20px;margin-bottom:14px;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:14px;">Registrar nova ação</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div>
+              <label style="font-size:11px;color:#9e9e98;font-weight:500;display:block;margin-bottom:4px;">NOTA / FORNECEDOR</label>
+              <input id="acao-nf" type="text" placeholder="Ex: NF 1234 – EBATA LTDA" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid rgba(0,0,0,.15);border-radius:6px;padding:7px 10px;outline:none;background:#f0efe9;">
+            </div>
+            <div>
+              <label style="font-size:11px;color:#9e9e98;font-weight:500;display:block;margin-bottom:4px;">SETOR RESPONSÁVEL</label>
+              <select id="acao-setor" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid rgba(0,0,0,.15);border-radius:6px;padding:7px 10px;outline:none;background:#f0efe9;color:#1a1a18;">
+                <option value="">Selecionar...</option>
+                <option>Compras</option>
+                <option>Recebimento</option>
+                <option>Qualidade</option>
+                <option>Fornecedor</option>
+                <option>Logística</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:11px;color:#9e9e98;font-weight:500;display:block;margin-bottom:4px;">PRAZO</label>
+              <input id="acao-prazo" type="date" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid rgba(0,0,0,.15);border-radius:6px;padding:7px 10px;outline:none;background:#f0efe9;">
+            </div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:11px;color:#9e9e98;font-weight:500;display:block;margin-bottom:4px;">AÇÃO A SER TOMADA</label>
+            <textarea id="acao-desc" rows="2" placeholder="Descreva o que precisa ser feito..." style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid rgba(0,0,0,.15);border-radius:6px;padding:7px 10px;outline:none;background:#f0efe9;resize:vertical;"></textarea>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button onclick="fecharNovaAcao()" style="font-size:12px;border:1px solid rgba(0,0,0,.15);border-radius:6px;padding:7px 16px;cursor:pointer;background:#fff;color:#6b6b66;">Cancelar</button>
+            <button onclick="salvarAcao()" style="font-size:12px;font-weight:500;background:#1a1a18;color:#f7f6f2;border:none;border-radius:6px;padding:7px 16px;cursor:pointer;">Salvar ação</button>
+          </div>
+        </div>
+
+        <!-- LISTA DE AÇÕES -->
+        <div id="lista-acoes"></div>
+      </div>
+
+    </div><!-- /tab-acao -->
 
   </div><!-- /#content -->
 </div>
@@ -1436,6 +1537,351 @@ function showDetail(idx) {
 function closeModal(e) {
   if (e.target === document.getElementById('modal-overlay'))
     document.getElementById('modal-overlay').classList.remove('open');
+}
+
+// ══════════════════════════════════════════
+// CENTRAL DE AÇÃO
+// ══════════════════════════════════════════
+
+let acoesRegistradas = JSON.parse(localStorage.getItem('notas-acoes') || '[]');
+
+function renderAcao() {
+  const criticos = allRows.filter(isCritico);
+  const volCritico = criticos.reduce((a, r) => a + r.volRep + r.volFalt, 0);
+
+  document.getElementById('acao-alerta-titulo').textContent =
+    criticos.length > 0
+      ? `${criticos.length} nota${criticos.length > 1 ? 's' : ''} crítica${criticos.length > 1 ? 's' : ''} exigem ação imediata — ${volCritico.toLocaleString('pt-BR')} un. de volume em risco`
+      : '✅ Nenhuma nota crítica no momento';
+
+  const fornCriticos = [...new Set(criticos.map(r => r.fornecedor))];
+  document.getElementById('acao-alerta-sub').textContent =
+    criticos.length > 0
+      ? `Fornecedores envolvidos: ${fornCriticos.slice(0,5).join(', ')}${fornCriticos.length > 5 ? ` e mais ${fornCriticos.length - 5}` : ''}`
+      : 'Continue monitorando o painel de evolução mensal.';
+
+  renderListaAcoes();
+}
+
+// ── Prioridade: score = dias_parado * (1 + vol/100) ──
+function scoreCritico(r) {
+  const dias = daysDiff(r.dtEntrega);
+  const vol  = r.volRep + r.volFalt;
+  return dias * (1 + vol / 100);
+}
+
+function gerarPlanoAcao() {
+  const criticos = allRows
+    .filter(isCritico)
+    .sort((a, b) => scoreCritico(b) - scoreCritico(a));
+
+  if (criticos.length === 0) {
+    mostrarOutput('📋 Plano de Ação', '✅ Nenhuma nota crítica encontrada. Continue monitorando!');
+    return;
+  }
+
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  let txt = `PLANO DE AÇÃO — NOTAS PARADAS CRÍTICAS\n`;
+  txt += `Gerado em: ${hoje}\n`;
+  txt += `${'─'.repeat(60)}\n\n`;
+  txt += `RESUMO\n`;
+  txt += `  Total de notas críticas (+20 dias): ${criticos.length}\n`;
+  txt += `  Volume total em risco: ${criticos.reduce((a,r) => a + r.volRep + r.volFalt, 0).toLocaleString('pt-BR')} un.\n`;
+  txt += `  Fornecedores envolvidos: ${[...new Set(criticos.map(r => r.fornecedor))].length}\n\n`;
+  txt += `${'─'.repeat(60)}\n\n`;
+  txt += `AÇÕES PRIORIZADAS (maior urgência primeiro)\n\n`;
+
+  criticos.forEach((r, i) => {
+    const dias = daysDiff(r.dtEntrega);
+    const vol  = r.volRep + r.volFalt;
+    const prazo = new Date(Date.now() + 2 * 86400000).toLocaleDateString('pt-BR');
+
+    txt += `${i + 1}. ${r.fornecedor}\n`;
+    txt += `   NF: ${r.nf || '—'}  |  Item: ${r.item || '—'}  |  ${dias} dias parado\n`;
+    txt += `   Descrição: ${r.desc || '—'}\n`;
+    if (vol > 0) txt += `   Volume em risco: ${vol.toLocaleString('pt-BR')} un. (reprov: ${r.volRep.toLocaleString('pt-BR')} / faltante: ${r.volFalt.toLocaleString('pt-BR')})\n`;
+    txt += `   Status atual: ${r.statusRaw || 'Pendente'}\n`;
+    if (r.obsComp) txt += `   Última obs. compras: "${r.obsComp}"\n`;
+    txt += `   ➤ AÇÃO: Contatar ${r.fornecedor} e exigir posição até ${prazo}\n`;
+    txt += `   ➤ RESPONSÁVEL: Compras\n`;
+    txt += `   ➤ PRAZO: ${prazo}\n\n`;
+  });
+
+  txt += `${'─'.repeat(60)}\n`;
+  txt += `PRÓXIMA REVISÃO: ${new Date(Date.now() + 3 * 86400000).toLocaleDateString('pt-BR')}\n`;
+  txt += `Este plano foi gerado automaticamente a partir do dashboard de notas paradas.`;
+
+  mostrarOutput('📋 Plano de Ação', txt);
+}
+
+function gerarEmails() {
+  const criticos = allRows.filter(isCritico);
+
+  if (criticos.length === 0) {
+    mostrarOutput('✉️ E-mails de Cobrança', '✅ Nenhuma nota crítica para cobrar.');
+    return;
+  }
+
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  const prazo2d = new Date(Date.now() + 2 * 86400000).toLocaleDateString('pt-BR');
+  const prazo5d = new Date(Date.now() + 5 * 86400000).toLocaleDateString('pt-BR');
+
+  // Agrupa por fornecedor
+  const porForn = {};
+  criticos.forEach(r => {
+    if (!porForn[r.fornecedor]) porForn[r.fornecedor] = [];
+    porForn[r.fornecedor].push(r);
+  });
+
+  let txt = ``;
+
+  // E-mail 1: Para o setor de COMPRAS (interno)
+  txt += `══════════════════════════════════════════\n`;
+  txt += `E-MAIL 1 — PARA: Setor de Compras (Interno)\n`;
+  txt += `ASSUNTO: ⚠️ URGENTE — ${criticos.length} nota${criticos.length > 1 ? 's' : ''} parada${criticos.length > 1 ? 's' : ''} crítica${criticos.length > 1 ? 's' : ''} aguardam ação imediata\n`;
+  txt += `══════════════════════════════════════════\n\n`;
+  txt += `Prezados,\n\n`;
+  txt += `Conforme acompanhamento do painel de notas paradas, identificamos ${criticos.length} nota${criticos.length > 1 ? 's' : ''} com mais de 20 dias sem resolução, totalizando ${criticos.reduce((a,r) => a + r.volRep + r.volFalt, 0).toLocaleString('pt-BR')} unidades de volume em risco.\n\n`;
+  txt += `Notas que requerem ação imediata:\n\n`;
+  criticos.sort((a,b) => scoreCritico(b) - scoreCritico(a)).forEach((r, i) => {
+    txt += `  ${i+1}. NF ${r.nf || '—'} — ${r.fornecedor} (${daysDiff(r.dtEntrega)} dias parada)\n`;
+    if (r.volRep + r.volFalt > 0) txt += `     Volume: ${(r.volRep + r.volFalt).toLocaleString('pt-BR')} un.\n`;
+  });
+  txt += `\nSolicito que cada nota acima seja tratada e que me enviem posicionamento até ${prazo2d}.\n\n`;
+  txt += `Atenciosamente,\n[Seu nome]\n\n\n`;
+
+  // E-mail 2: Para FORNECEDORES (um por um, modelo)
+  const fornTop = Object.entries(porForn).sort((a,b) => b[1].length - a[1].length)[0];
+  if (fornTop) {
+    const [forn, notas] = fornTop;
+    const volForn = notas.reduce((a,r) => a + r.volRep + r.volFalt, 0);
+    txt += `══════════════════════════════════════════\n`;
+    txt += `E-MAIL 2 — MODELO PARA FORNECEDOR (adapte para cada um)\n`;
+    txt += `PARA: ${forn}\n`;
+    txt += `ASSUNTO: Pendência de entrega — notas em aberto — prazo: ${prazo2d}\n`;
+    txt += `══════════════════════════════════════════\n\n`;
+    txt += `Prezados, ${forn},\n\n`;
+    txt += `Estamos com as seguintes notas fiscais pendentes de regularização em nossa base:\n\n`;
+    notas.forEach(r => {
+      txt += `  • NF ${r.nf || '—'} — ${r.desc || '—'} — ${daysDiff(r.dtEntrega)} dias em aberto\n`;
+      if (r.volRep > 0) txt += `    Volume reprovado: ${r.volRep.toLocaleString('pt-BR')} un.\n`;
+      if (r.volFalt > 0) txt += `    Volume faltante: ${r.volFalt.toLocaleString('pt-BR')} un.\n`;
+    });
+    if (volForn > 0) txt += `\nTotal de volume impactado: ${volForn.toLocaleString('pt-BR')} unidades.\n`;
+    txt += `\nSolicitamos posicionamento formal até ${prazo2d} com previsão de regularização. Caso não haja retorno, escalaremos para a gestão comercial.\n\n`;
+    txt += `Atenciosamente,\n[Seu nome] — [Empresa]\n\n\n`;
+  }
+
+  // E-mail 3: Para GESTÃO / ESCALADA
+  txt += `══════════════════════════════════════════\n`;
+  txt += `E-MAIL 3 — ESCALADA PARA GESTÃO\n`;
+  txt += `PARA: [Gestor / Diretoria]\n`;
+  txt += `ASSUNTO: Relatório semanal — notas críticas sem resolução\n`;
+  txt += `══════════════════════════════════════════\n\n`;
+  txt += `Prezado(a),\n\n`;
+  txt += `Segue atualização do painel de notas paradas referente a ${hoje}:\n\n`;
+  txt += `  • Notas críticas (+20 dias): ${criticos.length}\n`;
+  txt += `  • Volume total em risco: ${criticos.reduce((a,r) => a + r.volRep + r.volFalt, 0).toLocaleString('pt-BR')} un.\n`;
+  txt += `  • Fornecedores envolvidos: ${Object.keys(porForn).length}\n\n`;
+  txt += `Os setores de Compras e Qualidade foram notificados. Aguardamos retorno até ${prazo2d}.\n`;
+  txt += `Caso não haja evolução até ${prazo5d}, solicito autorização para acionar medidas contratuais junto aos fornecedores.\n\n`;
+  txt += `Atenciosamente,\n[Seu nome]`;
+
+  mostrarOutput('✉️ E-mails de Cobrança (3 modelos)', txt);
+}
+
+function gerarReuniao() {
+  const criticos = allRows.filter(isCritico).sort((a,b) => scoreCritico(b) - scoreCritico(a));
+  const pendentes = allRows.filter(r => r.status === 'pendente' && !isCritico(r));
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  const proximaReuniao = new Date(Date.now() + 7 * 86400000).toLocaleDateString('pt-BR');
+
+  let txt = `PAUTA DE REUNIÃO — NOTAS PARADAS\n`;
+  txt += `Data: ${hoje}  |  Duração sugerida: 45 min\n`;
+  txt += `${'─'.repeat(60)}\n\n`;
+
+  txt += `PARTICIPANTES NECESSÁRIOS\n`;
+  txt += `  □ Compras\n`;
+  txt += `  □ Recebimento / Qualidade\n`;
+  txt += `  □ Gestor responsável\n`;
+  txt += `  □ Logística (se aplicável)\n\n`;
+
+  txt += `${'─'.repeat(60)}\n`;
+  txt += `BLOCO 1 — ABERTURA (5 min)\n`;
+  txt += `${'─'.repeat(60)}\n`;
+  txt += `  1. Objetivo da reunião: destravar notas críticas e definir responsáveis\n`;
+  txt += `  2. Regra: cada nota sai com um responsável e uma data de retorno\n\n`;
+
+  txt += `${'─'.repeat(60)}\n`;
+  txt += `BLOCO 2 — NOTAS CRÍTICAS +20 DIAS (20 min)\n`;
+  txt += `${'─'.repeat(60)}\n`;
+  txt += `Total: ${criticos.length} nota${criticos.length !== 1 ? 's' : ''}\n\n`;
+
+  if (criticos.length === 0) {
+    txt += `  ✅ Sem notas críticas no momento.\n\n`;
+  } else {
+    criticos.slice(0, 8).forEach((r, i) => {
+      const dias = daysDiff(r.dtEntrega);
+      txt += `  ${i+1}. ${r.fornecedor} — NF ${r.nf || '—'} (${dias} dias)\n`;
+      if (r.desc) txt += `     Desc: ${r.desc}\n`;
+      if (r.volRep + r.volFalt > 0) txt += `     Volume: ${(r.volRep + r.volFalt).toLocaleString('pt-BR')} un.\n`;
+      txt += `     Status: ${r.statusRaw || 'Pendente'}\n`;
+      if (r.obsComp) txt += `     Última obs: "${r.obsComp}"\n`;
+      txt += `     → DECISÃO: ________________________________\n`;
+      txt += `     → RESPONSÁVEL: ____________  PRAZO: ______\n\n`;
+    });
+    if (criticos.length > 8) txt += `  ... e mais ${criticos.length - 8} notas (ver painel completo)\n\n`;
+  }
+
+  txt += `${'─'.repeat(60)}\n`;
+  txt += `BLOCO 3 — PENDENTES EM ANDAMENTO (10 min)\n`;
+  txt += `${'─'.repeat(60)}\n`;
+  txt += `  Total pendentes sem andamento: ${pendentes.length}\n`;
+  txt += `  Volume: ${pendentes.reduce((a,r) => a + r.volRep + r.volFalt, 0).toLocaleString('pt-BR')} un.\n\n`;
+  txt += `  Ponto de atenção: quais têm risco de virar críticos esta semana?\n`;
+  txt += `  → Listar: ________________________________\n\n`;
+
+  txt += `${'─'.repeat(60)}\n`;
+  txt += `BLOCO 4 — ENCAMINHAMENTOS (10 min)\n`;
+  txt += `${'─'.repeat(60)}\n`;
+  txt += `  □ Definir responsável por cada nota crítica\n`;
+  txt += `  □ Confirmar prazo de retorno por fornecedor\n`;
+  txt += `  □ Identificar notas com risco de escalar\n`;
+  txt += `  □ Agendar próxima revisão: ${proximaReuniao}\n\n`;
+
+  txt += `${'─'.repeat(60)}\n`;
+  txt += `PRÓXIMA REUNIÃO: ${proximaReuniao}\n`;
+  txt += `Frequência recomendada: semanal enquanto houver notas críticas.\n`;
+  txt += `\nAta gerada automaticamente em ${hoje} via painel de notas paradas.`;
+
+  mostrarOutput('📅 Pauta de Reunião', txt);
+}
+
+function mostrarOutput(titulo, conteudo) {
+  document.getElementById('acao-output-titulo').textContent = titulo;
+  document.getElementById('acao-output-conteudo').textContent = conteudo;
+  const el = document.getElementById('acao-output');
+  el.style.display = 'block';
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function fecharOutput() {
+  document.getElementById('acao-output').style.display = 'none';
+}
+
+function copiarOutput() {
+  const txt = document.getElementById('acao-output-conteudo').textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✅ Copiado!';
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  });
+}
+
+// ── TRACKER DE AÇÕES ──
+function abrirNovaAcao() {
+  document.getElementById('form-nova-acao').style.display = 'block';
+  // Pré-preenche prazo com 2 dias
+  const d = new Date(Date.now() + 2 * 86400000);
+  document.getElementById('acao-prazo').value = d.toISOString().slice(0,10);
+}
+
+function fecharNovaAcao() {
+  document.getElementById('form-nova-acao').style.display = 'none';
+}
+
+function salvarAcao() {
+  const nf     = document.getElementById('acao-nf').value.trim();
+  const setor  = document.getElementById('acao-setor').value;
+  const prazo  = document.getElementById('acao-prazo').value;
+  const desc   = document.getElementById('acao-desc').value.trim();
+
+  if (!nf || !setor || !desc) {
+    alert('Preencha nota/fornecedor, setor e a ação.');
+    return;
+  }
+
+  acoesRegistradas.unshift({
+    id: Date.now(),
+    nf, setor, prazo, desc,
+    status: 'aberta',
+    criadaEm: new Date().toLocaleDateString('pt-BR'),
+  });
+
+  localStorage.setItem('notas-acoes', JSON.stringify(acoesRegistradas));
+  fecharNovaAcao();
+  document.getElementById('acao-nf').value = '';
+  document.getElementById('acao-setor').value = '';
+  document.getElementById('acao-desc').value = '';
+  renderListaAcoes();
+}
+
+function toggleStatusAcao(id) {
+  const a = acoesRegistradas.find(x => x.id === id);
+  if (!a) return;
+  a.status = a.status === 'aberta' ? 'concluida' : 'aberta';
+  localStorage.setItem('notas-acoes', JSON.stringify(acoesRegistradas));
+  renderListaAcoes();
+}
+
+function excluirAcao(id) {
+  acoesRegistradas = acoesRegistradas.filter(x => x.id !== id);
+  localStorage.setItem('notas-acoes', JSON.stringify(acoesRegistradas));
+  renderListaAcoes();
+}
+
+function renderListaAcoes() {
+  const el = document.getElementById('lista-acoes');
+  if (acoesRegistradas.length === 0) {
+    el.innerHTML = `<div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:32px;text-align:center;color:#9e9e98;font-size:13px;">Nenhuma ação registrada ainda. Clique em "+ Nova ação" ou gere um plano de ação acima.</div>`;
+    return;
+  }
+
+  const setorColor = { 'Compras':'#1a4f8a', 'Recebimento':'#9a6200', 'Qualidade':'#6a2d8a', 'Fornecedor':'#c0392b', 'Logística':'#2d6a1f' };
+
+  const abertas    = acoesRegistradas.filter(a => a.status === 'aberta');
+  const concluidas = acoesRegistradas.filter(a => a.status === 'concluida');
+
+  let html = '';
+
+  if (abertas.length > 0) {
+    html += `<div style="font-size:11px;font-weight:600;color:#9e9e98;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Em aberto (${abertas.length})</div>`;
+    html += abertas.map(a => {
+      const vencida = a.prazo && new Date(a.prazo) < new Date();
+      const cor = setorColor[a.setor] || '#6b6b66';
+      return `
+        <div style="background:#fff;border:1px solid ${vencida ? '#f5c6c3' : 'rgba(0,0,0,.09)'};border-radius:10px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:flex-start;gap:14px;${vencida ? 'background:#fdf0ef;' : ''}">
+          <button onclick="toggleStatusAcao(${a.id})" style="width:20px;height:20px;border-radius:50%;border:2px solid #d0d0c8;background:#fff;cursor:pointer;flex-shrink:0;margin-top:1px;" title="Marcar como concluída"></button>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+              <span style="font-size:13px;font-weight:600;color:#1a1a18;">${a.nf}</span>
+              <span style="font-size:11px;font-weight:500;background:${cor}18;color:${cor};border-radius:99px;padding:2px 8px;">${a.setor}</span>
+              ${vencida ? '<span style="font-size:11px;font-weight:600;color:#c0392b;">⚠️ Vencida</span>' : ''}
+              ${a.prazo ? `<span style="font-size:11px;color:#9e9e98;">Prazo: ${new Date(a.prazo + 'T00:00:00').toLocaleDateString('pt-BR')}</span>` : ''}
+            </div>
+            <div style="font-size:13px;color:#6b6b66;">${a.desc}</div>
+          </div>
+          <button onclick="excluirAcao(${a.id})" style="font-size:16px;background:none;border:none;color:#d0d0c8;cursor:pointer;flex-shrink:0;" title="Excluir">×</button>
+        </div>`;
+    }).join('');
+  }
+
+  if (concluidas.length > 0) {
+    html += `<div style="font-size:11px;font-weight:600;color:#9e9e98;text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px;">Concluídas (${concluidas.length})</div>`;
+    html += concluidas.map(a => `
+      <div style="background:#f7f6f2;border:1px solid rgba(0,0,0,.06);border-radius:10px;padding:12px 18px;margin-bottom:6px;display:flex;align-items:center;gap:14px;opacity:.7;">
+        <button onclick="toggleStatusAcao(${a.id})" style="width:20px;height:20px;border-radius:50%;border:2px solid #3a8a28;background:#3a8a28;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;" title="Reabrir">✓</button>
+        <div style="flex:1;min-width:0;">
+          <span style="font-size:13px;font-weight:500;color:#9e9e98;text-decoration:line-through;">${a.nf}</span>
+          <span style="font-size:11px;color:#9e9e98;margin-left:8px;">${a.setor}</span>
+        </div>
+        <button onclick="excluirAcao(${a.id})" style="font-size:16px;background:none;border:none;color:#d0d0c8;cursor:pointer;" title="Excluir">×</button>
+      </div>`
+    ).join('');
+  }
+
+  el.innerHTML = html;
 }
 
 loadData();

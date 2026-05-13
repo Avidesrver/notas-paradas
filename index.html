@@ -653,8 +653,8 @@ function renderKPIs() {
     { label: 'Em andamento',      value: andamento,                       cls: 'amber', sub: 'aguardando retorno' },
     { label: 'Concluídas',        value: concluido,                       cls: 'green', sub: 'resolvidas' },
     { label: 'Críticas (+20d)',   value: critico,                         cls: 'red',   sub: 'sem solução há 20+ dias' },
-    { label: 'Vol. reprovado',    value: totalRep.toLocaleString('pt-BR'), cls: 'amber', sub: 'unidades reprovadas' },
-    { label: 'Vol. faltante',     value: totalFalt.toLocaleString('pt-BR'), cls: 'red', sub: 'unidades em falta' },
+    { label: 'Vol. reprovado',    value: totalRep.toLocaleString('pt-BR'), cls: 'amber', sub: 'volume reprovado' },
+    { label: 'Vol. faltante',     value: totalFalt.toLocaleString('pt-BR'), cls: 'red', sub: 'volume faltante' },
   ];
 
   document.getElementById('kpi-grid').innerHTML = cards.map(c =>

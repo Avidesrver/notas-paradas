@@ -1250,12 +1250,12 @@ function renderMetas(byMonth, sortedKeys, isVol) {
     },
     {
       id: 'reduzir_pendente',
-      label: isVol ? 'Reduzir volume pendente' : 'Reduzir pendentes (mês atual)',
+      label: isVol ? 'Pendentes em volume (teto máx.)' : 'Pendentes (teto máximo)',
       atual: pendenteMes,
       meta: metas.reduzir_pendente,
       color: '#c0392b',
       placeholder: isVol ? '200' : '5',
-      inverse: true, // menor = melhor
+      teto: true, // lógica de teto: atual <= meta = ✅
     },
     {
       id: 'total_mes',
@@ -1269,27 +1269,58 @@ function renderMetas(byMonth, sortedKeys, isVol) {
   ];
 
   document.getElementById('metas-grid').innerHTML = metaItems.map(item => {
-    const pct = item.meta > 0
-      ? item.inverse
-        ? Math.max(0, Math.round((1 - item.atual / item.meta) * 100))
-        : Math.min(100, Math.round((item.atual / item.meta) * 100))
-      : 0;
+    let pct, statusLabel, barColor, statusColor, barWidth;
 
-    const pctColor = pct >= 100 ? '#3a8a28' : pct >= 60 ? '#e8a000' : '#c0392b';
+    if (item.meta <= 0) {
+      // Sem meta definida
+      pct = 0; statusLabel = '—'; barColor = '#d0d0c8'; statusColor = 'var(--text3)'; barWidth = 0;
+    } else if (item.teto) {
+      // Lógica de TETO: atual <= meta = bateu; atual > meta = estourou
+      if (item.atual <= item.meta) {
+        // Bateu a meta — barra verde proporcional ao quanto sobrou de margem
+        barWidth = 100;
+        barColor = '#3a8a28';
+        statusColor = '#3a8a28';
+        const sobra = item.meta - item.atual;
+        statusLabel = item.atual === item.meta
+          ? 'No limite ⚠️'
+          : `✅ Meta batida — ${sobra} abaixo do teto`;
+        pct = null; // não mostra %
+      } else {
+        // Estourou a meta
+        const excesso = item.atual - item.meta;
+        barWidth = Math.min(100, Math.round((item.atual / item.meta) * 60)); // barra parcial vermelha
+        barColor = '#c0392b';
+        statusColor = '#c0392b';
+        statusLabel = `⚠️ +${excesso} acima da meta`;
+        pct = null;
+      }
+    } else {
+      // Lógica normal: quanto mais próximo da meta melhor
+      pct = Math.min(100, Math.round((item.atual / item.meta) * 100));
+      barWidth = pct;
+      barColor = item.color;
+      statusColor = pct >= 100 ? '#3a8a28' : pct >= 60 ? '#e8a000' : '#c0392b';
+      statusLabel = pct + '%';
+    }
+
+    const metaLabel = item.meta > 0
+      ? (item.teto ? 'Teto: ' : 'Meta: ') + item.meta.toLocaleString('pt-BR')
+      : 'Meta não definida';
 
     return `
       <div class="meta-card">
         <div class="meta-card-label">${item.label}</div>
         <div class="meta-progress-wrap">
-          <div class="meta-progress-bar" style="width:${pct}%;background:${item.color}"></div>
+          <div class="meta-progress-bar" style="width:${barWidth}%;background:${barColor}"></div>
         </div>
         <div class="meta-info">
-          <span class="meta-atual" style="color:${item.color}">${item.atual.toLocaleString('pt-BR')}</span>
-          <span class="meta-alvo">${item.meta > 0 ? 'Meta: ' + item.meta.toLocaleString('pt-BR') : 'Meta não definida'}</span>
-          <span class="meta-pct" style="color:${pctColor}">${item.meta > 0 ? pct + '%' : '—'}</span>
+          <span class="meta-atual" style="color:${item.teto && item.meta > 0 ? (item.atual <= item.meta ? '#3a8a28' : '#c0392b') : item.color}">${item.atual.toLocaleString('pt-BR')}</span>
+          <span class="meta-alvo">${metaLabel}</span>
+          <span class="meta-pct" style="color:${statusColor};font-size:${item.teto ? '11px' : '12px'}">${statusLabel}</span>
         </div>
         <div class="meta-input-group">
-          <label>Definir meta:</label>
+          <label>${item.teto ? 'Teto máximo:' : 'Definir meta:'}</label>
           <input type="number" id="meta-input-${item.id}" value="${item.meta || ''}" placeholder="${item.placeholder}" min="0">
           <button class="meta-save-btn" onclick="saveMeta('${item.id}')">Salvar</button>
         </div>

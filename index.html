@@ -35,7 +35,6 @@
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
-    padding: 0;
   }
 
   /* ── HEADER ── */
@@ -58,7 +57,7 @@
     display: flex; align-items: center; justify-content: center;
   }
   .header-logo svg { width: 20px; height: 20px; fill: #f7f6f2; }
-  .header h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
+  .header-title { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
   .header-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
   .header-right { display: flex; align-items: center; gap: 10px; }
   .badge-date { font-size: 12px; color: var(--text2); background: var(--surface2); border: 1px solid var(--border); border-radius: 99px; padding: 4px 12px; }
@@ -71,8 +70,34 @@
   }
   #btn-reload:hover { opacity: 0.8; }
 
+  /* ── TABS ── */
+  .tabs-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    gap: 0;
+  }
+  .tab-btn {
+    font-size: 13px; font-weight: 500;
+    padding: 12px 18px;
+    border: none;
+    background: none;
+    color: var(--text2);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--text); border-bottom-color: #1a1a18; }
+
   /* ── MAIN ── */
   .main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
 
   /* ── LOADING ── */
   #loading {
@@ -103,6 +128,68 @@
 
   #content { display: none; }
 
+  /* ── PERIOD FILTER BAR (global) ── */
+  .period-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .period-bar-label { font-size: 12px; font-weight: 600; color: var(--text2); white-space: nowrap; }
+  .period-inputs { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .period-field { display: flex; align-items: center; gap: 6px; }
+  .period-field label { font-size: 11px; color: var(--text3); font-weight: 500; }
+  .period-field input[type="date"] {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 5px 10px;
+    background: var(--surface2);
+    color: var(--text);
+    outline: none;
+    cursor: pointer;
+  }
+  .period-field input[type="date"]:focus { border-color: #1a1a18; }
+  .period-clear-btn {
+    font-size: 11px; font-weight: 500;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 5px 12px;
+    cursor: pointer;
+    background: var(--red-bg);
+    color: var(--red);
+    transition: all .12s;
+  }
+  .period-clear-btn:hover { background: #f5c6c3; }
+  .period-presets { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+  .period-preset {
+    font-size: 11px; font-weight: 500;
+    border: 1px solid var(--border2);
+    border-radius: 99px;
+    padding: 4px 11px;
+    cursor: pointer;
+    background: var(--surface2);
+    color: var(--text2);
+    transition: all .12s;
+    white-space: nowrap;
+  }
+  .period-preset:hover, .period-preset.active { background: #1a1a18; color: #f7f6f2; border-color: #1a1a18; }
+  .period-active-badge {
+    display: none;
+    font-size: 11px; font-weight: 500;
+    background: var(--blue-bg);
+    color: var(--blue);
+    border: 1px solid #b5d4f4;
+    border-radius: 99px;
+    padding: 3px 10px;
+  }
+
   /* ── KPI CARDS ── */
   .kpi-grid {
     display: grid;
@@ -123,6 +210,32 @@
   .kpi-value.amber { color: var(--amber); }
   .kpi-value.green { color: var(--green); }
   .kpi-value.blue { color: var(--blue); }
+
+  /* ── VOL POR STATUS ── */
+  .vol-status-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 600px) { .vol-status-grid { grid-template-columns: 1fr; } }
+  .vol-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .vol-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .vol-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .vol-card-label { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .04em; }
+  .vol-rows { display: flex; flex-direction: column; gap: 6px; }
+  .vol-row { display: flex; justify-content: space-between; align-items: center; }
+  .vol-row-label { font-size: 11px; color: var(--text3); }
+  .vol-row-val { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
+  .vol-row-val.red { color: var(--red); }
+  .vol-row-val.neutral { color: var(--text2); }
+  .vol-bar-wrap { height: 4px; background: var(--surface2); border-radius: 99px; margin-top: 8px; overflow: hidden; }
+  .vol-bar { height: 100%; border-radius: 99px; transition: width .4s; }
 
   /* ── CHARTS ROW ── */
   .charts-row {
@@ -180,60 +293,6 @@
     outline: none;
   }
   .search-wrap input:focus { border-color: #1a1a18; }
-
-  /* ── DATE FILTER ── */
-  .date-filter-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 14px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 12px 16px;
-    flex-wrap: wrap;
-  }
-  .date-filter-label { font-size: 12px; font-weight: 500; color: var(--text2); white-space: nowrap; }
-  .date-inputs { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .date-field { display: flex; align-items: center; gap: 6px; }
-  .date-field label { font-size: 11px; color: var(--text3); font-weight: 500; }
-  .date-field input[type="date"] {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-    border: 1px solid var(--border2);
-    border-radius: var(--radius-sm);
-    padding: 5px 10px;
-    background: var(--surface2);
-    color: var(--text);
-    outline: none;
-    cursor: pointer;
-  }
-  .date-field input[type="date"]:focus { border-color: #1a1a18; }
-  .date-clear-btn {
-    font-size: 11px; font-weight: 500;
-    border: 1px solid var(--border2);
-    border-radius: var(--radius-sm);
-    padding: 5px 12px;
-    cursor: pointer;
-    background: var(--red-bg);
-    color: var(--red);
-    transition: all .12s;
-  }
-  .date-clear-btn:hover { background: #f5c6c3; }
-  .date-presets { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-left: auto; }
-  .date-preset {
-    font-size: 11px; font-weight: 500;
-    border: 1px solid var(--border2);
-    border-radius: 99px;
-    padding: 4px 11px;
-    cursor: pointer;
-    background: var(--surface2);
-    color: var(--text2);
-    transition: all .12s;
-    white-space: nowrap;
-  }
-  .date-preset:hover { background: #1a1a18; color: #f7f6f2; border-color: #1a1a18; }
-  .date-preset.active { background: #1a1a18; color: #f7f6f2; border-color: #1a1a18; }
 
   /* ── TABLE ── */
   .table-card {
@@ -357,8 +416,7 @@
     width: 28px; height: 28px; border-radius: 50%;
     font-size: 16px; cursor: pointer; color: var(--text2);
     display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; margin-left: 12px;
-    line-height: 1;
+    flex-shrink: 0; margin-left: 12px; line-height: 1;
   }
   .modal-close:hover { background: var(--border2); }
   .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
@@ -380,12 +438,104 @@
   }
 
   /* ── EMPTY ── */
-  .empty-row td {
-    text-align: center;
-    padding: 40px;
-    color: var(--text3);
-    font-size: 14px;
+  .empty-row td { text-align: center; padding: 40px; color: var(--text3); font-size: 14px; }
+
+  /* ── EVOLUÇÃO MENSAL ── */
+  .evolucao-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
   }
+  .evolucao-header h2 { font-size: 16px; font-weight: 600; }
+  .evolucao-header p { font-size: 13px; color: var(--text2); margin-top: 3px; }
+  .evolucao-toggle {
+    display: flex;
+    gap: 6px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+  }
+  .evolucao-toggle-btn {
+    font-size: 12px; font-weight: 500;
+    padding: 5px 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background: none;
+    color: var(--text2);
+    transition: all .12s;
+  }
+  .evolucao-toggle-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+
+  .evolucao-charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 800px) { .evolucao-charts-grid { grid-template-columns: 1fr; } }
+
+  .evolucao-full-chart {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+  .evolucao-full-chart h3 { font-size: 12px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 14px; }
+
+  .metas-section { margin-top: 24px; }
+  .metas-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .metas-section-header h3 { font-size: 14px; font-weight: 600; }
+  .metas-hint { font-size: 12px; color: var(--text3); background: var(--amber-bg); border: 1px solid #f5d98a; border-radius: var(--radius-sm); padding: 6px 12px; }
+
+  .metas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .meta-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .meta-card-label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 10px; }
+  .meta-progress-wrap { position: relative; height: 8px; background: var(--surface2); border-radius: 99px; overflow: hidden; margin-bottom: 8px; }
+  .meta-progress-bar { height: 100%; border-radius: 99px; transition: width .5s; }
+  .meta-info { display: flex; justify-content: space-between; align-items: center; }
+  .meta-atual { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+  .meta-alvo { font-size: 12px; color: var(--text3); }
+  .meta-pct { font-size: 12px; font-weight: 600; }
+
+  .meta-input-group { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .meta-input-group label { font-size: 11px; color: var(--text3); white-space: nowrap; }
+  .meta-input-group input {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 4px 8px;
+    width: 80px;
+    outline: none;
+    background: var(--surface2);
+    color: var(--text);
+  }
+  .meta-input-group input:focus { border-color: #1a1a18; }
+  .meta-save-btn {
+    font-size: 11px; font-weight: 500;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 4px 10px;
+    cursor: pointer;
+    background: #1a1a18;
+    color: #f7f6f2;
+    transition: opacity .12s;
+  }
+  .meta-save-btn:hover { opacity: 0.8; }
 
   /* ── FOOTER ── */
   .footer {
@@ -406,7 +556,7 @@
       <svg viewBox="0 0 20 20"><path d="M3 4h14v2H3V4zm0 5h14v2H3V9zm0 5h9v2H3v-2z"/></svg>
     </div>
     <div>
-      <div class="header h1" style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;letter-spacing:-0.02em;">Notas paradas — tratativas compras</div>
+      <div class="header-title">Notas paradas — tratativas compras</div>
       <div class="header-sub" id="sheet-name">Carregando planilha...</div>
     </div>
   </div>
@@ -414,6 +564,12 @@
     <span class="badge-date" id="today-label"></span>
     <button id="btn-reload" onclick="loadData()">Atualizar dados</button>
   </div>
+</div>
+
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="switchTab('visao-geral', this)">Visão geral</button>
+  <button class="tab-btn" onclick="switchTab('evolucao', this)">Evolução mensal</button>
+  <button class="tab-btn" onclick="switchTab('tabela', this)">Tabela detalhada</button>
 </div>
 
 <div class="main">
@@ -425,86 +581,143 @@
   <div id="error-msg"></div>
 
   <div id="content">
-    <div class="kpi-grid" id="kpi-grid"></div>
 
-    <div class="charts-row">
-      <div class="chart-card">
-        <h3>Notas por fornecedor</h3>
-        <div style="position:relative;height:220px;">
-          <canvas id="chart-forn" role="img" aria-label="Notas por fornecedor">Gráfico de notas por fornecedor</canvas>
+    <!-- FILTRO DE PERÍODO GLOBAL -->
+    <div class="period-bar">
+      <span class="period-bar-label">📅 Período:</span>
+      <div class="period-inputs">
+        <div class="period-field">
+          <label for="global-from">De</label>
+          <input type="date" id="global-from" onchange="applyPeriodFilter()">
         </div>
+        <div class="period-field">
+          <label for="global-to">Até</label>
+          <input type="date" id="global-to" onchange="applyPeriodFilter()">
+        </div>
+        <button class="period-clear-btn" onclick="clearPeriodFilter()" id="btn-clear-period" style="display:none">Limpar</button>
+        <span class="period-active-badge" id="period-active-badge">Período filtrado</span>
       </div>
-      <div class="chart-card">
-        <h3>Status de tratativa</h3>
-        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;" id="legend-status"></div>
-        <div style="position:relative;height:190px;">
-          <canvas id="chart-status" role="img" aria-label="Distribuição por status">Gráfico por status</canvas>
+      <div class="period-presets">
+        <button class="period-preset" onclick="setPeriodPreset('week', this)">Esta semana</button>
+        <button class="period-preset" onclick="setPeriodPreset('month', this)">Este mês</button>
+        <button class="period-preset" onclick="setPeriodPreset('last30', this)">Últimos 30d</button>
+        <button class="period-preset" onclick="setPeriodPreset('last60', this)">Últimos 60d</button>
+        <button class="period-preset" onclick="setPeriodPreset('last90', this)">Últimos 90d</button>
+        <button class="period-preset" onclick="setPeriodPreset('all', this)">Tudo</button>
+      </div>
+    </div>
+
+    <!-- ==================== ABA: VISÃO GERAL ==================== -->
+    <div id="tab-visao-geral" class="tab-content active">
+
+      <!-- KPI CARDS -->
+      <div class="kpi-grid" id="kpi-grid"></div>
+
+      <!-- VOLUME POR STATUS -->
+      <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Volume por status de tratativa</div>
+      <div class="vol-status-grid" id="vol-status-grid"></div>
+
+      <!-- CHARTS -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <h3>Notas por fornecedor</h3>
+          <div style="position:relative;height:220px;">
+            <canvas id="chart-forn"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Status de tratativa</h3>
+          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;" id="legend-status"></div>
+          <div style="position:relative;height:190px;">
+            <canvas id="chart-status"></canvas>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="filter-bar">
-      <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">Todas</button>
-      <button class="filter-btn" data-filter="pendente" onclick="setFilter('pendente',this)"><span class="dot" style="background:#c0392b"></span>Pendentes</button>
-      <button class="filter-btn" data-filter="andamento" onclick="setFilter('andamento',this)"><span class="dot" style="background:#9a6200"></span>Em andamento</button>
-      <button class="filter-btn" data-filter="concluido" onclick="setFilter('concluido',this)"><span class="dot" style="background:#2d6a1f"></span>Concluídas</button>
-      <button class="filter-btn" data-filter="critico" onclick="setFilter('critico',this)"><span class="dot" style="background:#c0392b"></span>Críticas +20d</button>
-      <div class="search-wrap">
-        <input type="text" id="search-input" placeholder="Buscar fornecedor, NF, desc..." oninput="renderTable()">
+    <!-- ==================== ABA: EVOLUÇÃO MENSAL ==================== -->
+    <div id="tab-evolucao" class="tab-content">
+      <div class="evolucao-header">
+        <div>
+          <h2>Evolução mensal</h2>
+          <p>Compare mês a mês: o que entrou, o que resolvemos e o que ficou pendente.</p>
+        </div>
+        <div class="evolucao-toggle">
+          <button class="evolucao-toggle-btn active" onclick="setEvolucaoMode('qtd', this)">Quantidade</button>
+          <button class="evolucao-toggle-btn" onclick="setEvolucaoMode('vol', this)">Volume</button>
+        </div>
+      </div>
+
+      <!-- Gráfico principal: barras empilhadas por status/mês -->
+      <div class="evolucao-full-chart">
+        <h3 id="evol-chart-title">Notas por mês e status</h3>
+        <div style="position:relative;height:280px;">
+          <canvas id="chart-evol-stack"></canvas>
+        </div>
+      </div>
+
+      <!-- Gráfico de linhas: fluxo (entradas vs resoluções) -->
+      <div class="evolucao-full-chart">
+        <h3 id="evol-flux-title">Fluxo mensal — entradas vs resoluções</h3>
+        <div style="position:relative;height:240px;">
+          <canvas id="chart-evol-flux"></canvas>
+        </div>
+      </div>
+
+      <!-- METAS -->
+      <div class="metas-section">
+        <div class="metas-section-header">
+          <h3>Metas de resolução</h3>
+          <span class="metas-hint">💡 Defina suas metas abaixo e acompanhe o progresso</span>
+        </div>
+        <div class="metas-grid" id="metas-grid"></div>
       </div>
     </div>
 
-    <div class="date-filter-bar">
-      <span class="date-filter-label">Filtrar por data de entrega:</span>
-      <div class="date-inputs">
-        <div class="date-field">
-          <label for="date-from">De</label>
-          <input type="date" id="date-from" onchange="renderTable()">
+    <!-- ==================== ABA: TABELA ==================== -->
+    <div id="tab-tabela" class="tab-content">
+      <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">Todas</button>
+        <button class="filter-btn" data-filter="pendente" onclick="setFilter('pendente',this)"><span class="dot" style="background:#c0392b"></span>Pendentes</button>
+        <button class="filter-btn" data-filter="andamento" onclick="setFilter('andamento',this)"><span class="dot" style="background:#9a6200"></span>Em andamento</button>
+        <button class="filter-btn" data-filter="concluido" onclick="setFilter('concluido',this)"><span class="dot" style="background:#2d6a1f"></span>Concluídas</button>
+        <button class="filter-btn" data-filter="critico" onclick="setFilter('critico',this)"><span class="dot" style="background:#c0392b"></span>Críticas +20d</button>
+        <div class="search-wrap">
+          <input type="text" id="search-input" placeholder="Buscar fornecedor, NF, desc..." oninput="renderTable()">
         </div>
-        <div class="date-field">
-          <label for="date-to">Até</label>
-          <input type="date" id="date-to" onchange="renderTable()">
-        </div>
-        <button class="date-clear-btn" onclick="clearDateFilter()" id="btn-clear-date" style="display:none">Limpar datas</button>
       </div>
-      <div class="date-presets">
-        <button class="date-preset" onclick="setPreset('week')">Esta semana</button>
-        <button class="date-preset" onclick="setPreset('month')">Este mês</button>
-        <button class="date-preset" onclick="setPreset('last30')">Últimos 30d</button>
-        <button class="date-preset" onclick="setPreset('last60')">Últimos 60d</button>
-        <button class="date-preset" onclick="setPreset('last90')">Últimos 90d</button>
+
+      <div class="table-card">
+        <div class="table-header">
+          <h2>Registro de notas paradas</h2>
+          <span class="table-count" id="table-count"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Fornecedor</th>
+                <th>Tipo</th>
+                <th>Nota fiscal</th>
+                <th>Item</th>
+                <th>Descrição</th>
+                <th style="text-align:right">Vol. reprov.</th>
+                <th style="text-align:right">Vol. faltante</th>
+                <th>Insp. 100%</th>
+                <th>Dt. entrega</th>
+                <th>Status compras</th>
+                <th>Obs. recebimento</th>
+                <th>Obs. compras</th>
+                <th>Formulário</th>
+              </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <div class="table-card">
-      <div class="table-header">
-        <h2>Registro de notas paradas</h2>
-        <span class="table-count" id="table-count"></span>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Fornecedor</th>
-              <th>Tipo</th>
-              <th>Nota fiscal</th>
-              <th>Item</th>
-              <th>Descrição</th>
-              <th style="text-align:right">Vol. reprov.</th>
-              <th style="text-align:right">Vol. faltante</th>
-              <th>Insp. 100%</th>
-              <th>Dt. entrega</th>
-              <th>Status compras</th>
-              <th>Obs. recebimento</th>
-              <th>Obs. compras</th>
-              <th>Formulário</th>
-            </tr>
-          </thead>
-          <tbody id="table-body"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+  </div><!-- /#content -->
 </div>
 
 <div class="footer" id="footer-info"></div>
@@ -528,21 +741,31 @@ const SHEET_ID = '1MFnPmUfxxzE1gjJzGVlVmdFOaHI-TmqonLnRGQNNQC8';
 const GID      = '1456714907';
 
 let allRows = [];
+let filteredRows = []; // rows após filtro de período
 let currentFilter = 'all';
+let currentEvolucaoMode = 'qtd';
 let charts = {};
+let metas = JSON.parse(localStorage.getItem('notas-metas') || '{"concluir_mes":10,"reduzir_pendente":5,"reduzir_vol":1000}');
 
 document.getElementById('today-label').textContent = new Date().toLocaleDateString('pt-BR', { weekday:'short', day:'2-digit', month:'short', year:'numeric' });
 
+// ── TABS ──
+function switchTab(id, el) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+  if (id === 'evolucao') renderEvolucao();
+}
+
+// ── DATE UTILS ──
 function parseDate(str) {
   if (!str) return null;
   const s = String(str).trim();
-  // Formato GViz: Date(2026,3,7) — mês base 0
   const gviz = s.match(/^Date\((\d+),(\d+),(\d+)\)$/);
   if (gviz) return new Date(+gviz[1], +gviz[2], +gviz[3]);
-  // Formato dd/mm/yyyy
   const dmy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (dmy) return new Date(+dmy[3], +dmy[2]-1, +dmy[1]);
-  // Formato yyyy-mm-dd
   const ymd = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (ymd) return new Date(+ymd[1], +ymd[2]-1, +ymd[3]);
   return null;
@@ -575,6 +798,75 @@ function normalizeStatus(raw) {
   return 'pendente';
 }
 
+// ── PERÍODO GLOBAL ──
+function getGlobalPeriod() {
+  const fromVal = document.getElementById('global-from').value;
+  const toVal   = document.getElementById('global-to').value;
+  return {
+    from: fromVal ? new Date(fromVal + 'T00:00:00') : null,
+    to:   toVal   ? new Date(toVal   + 'T23:59:59') : null,
+  };
+}
+
+function applyPeriodFilter() {
+  const { from, to } = getGlobalPeriod();
+  const hasFilter = from || to;
+
+  document.getElementById('btn-clear-period').style.display = hasFilter ? 'inline-block' : 'none';
+  document.getElementById('period-active-badge').style.display = hasFilter ? 'inline-block' : 'none';
+
+  filteredRows = allRows.filter(r => {
+    if (!hasFilter) return true;
+    const d = parseDate(r.dtEntrega);
+    if (!d || isNaN(d)) return false;
+    if (from && d < from) return false;
+    if (to   && d > to)   return false;
+    return true;
+  });
+
+  renderKPIs();
+  renderCharts();
+  renderTable();
+  if (document.getElementById('tab-evolucao').classList.contains('active')) renderEvolucao();
+}
+
+function clearPeriodFilter() {
+  document.getElementById('global-from').value = '';
+  document.getElementById('global-to').value   = '';
+  document.querySelectorAll('.period-preset').forEach(b => b.classList.remove('active'));
+  applyPeriodFilter();
+}
+
+function setPeriodPreset(p, el) {
+  const now   = new Date();
+  const today = now.toISOString().slice(0,10);
+  let from = '', to = today;
+
+  if (p === 'all') { from = ''; to = ''; }
+  else if (p === 'week') {
+    const d = new Date(now); d.setDate(d.getDate() - d.getDay());
+    from = d.toISOString().slice(0,10);
+  } else if (p === 'month') {
+    from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+  } else if (p === 'last30') {
+    const d = new Date(now); d.setDate(d.getDate() - 30);
+    from = d.toISOString().slice(0,10);
+  } else if (p === 'last60') {
+    const d = new Date(now); d.setDate(d.getDate() - 60);
+    from = d.toISOString().slice(0,10);
+  } else if (p === 'last90') {
+    const d = new Date(now); d.setDate(d.getDate() - 90);
+    from = d.toISOString().slice(0,10);
+  }
+
+  document.getElementById('global-from').value = from;
+  document.getElementById('global-to').value   = to;
+  document.querySelectorAll('.period-preset').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  applyPeriodFilter();
+}
+
+// ── LOAD DATA ──
 async function loadData() {
   document.getElementById('loading').style.display = 'flex';
   document.getElementById('content').style.display  = 'none';
@@ -588,18 +880,16 @@ async function loadData() {
     const text = await res.text();
     const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
 
-    const cols = json.table.cols;
     const rows = json.table.rows;
 
     allRows = rows
       .filter(r => r && r.c && r.c[0] && r.c[0].v)
       .map(r => {
         const v = i => (r.c[i] && r.c[i].v != null) ? String(r.c[i].v).trim() : '';
-        // Para datas: usa o .v bruto que vem como "Date(yyyy,m,d)"
         const vDate = i => {
           const cel = r.c[i];
           if (!cel || cel.v == null) return '';
-          return String(cel.v).trim(); // ex: "Date(2026,3,7)"
+          return String(cel.v).trim();
         };
         return {
           fornecedor: v(0),
@@ -620,6 +910,8 @@ async function loadData() {
         };
       });
 
+    filteredRows = [...allRows];
+
     document.getElementById('sheet-name').textContent = 'Tratativa — Fornecedor (Compras) · ' + allRows.length + ' registros carregados';
     document.getElementById('footer-info').textContent = 'Dados atualizados em ' + new Date().toLocaleString('pt-BR') + ' · Planilha ID ' + SHEET_ID;
 
@@ -627,6 +919,7 @@ async function loadData() {
     document.getElementById('content').style.display  = 'block';
 
     renderKPIs();
+    renderVolumeStatus();
     renderCharts();
     renderTable();
 
@@ -638,23 +931,28 @@ async function loadData() {
   }
 }
 
+// ── RENDER KPIs (usa filteredRows) ──
 function renderKPIs() {
-  const total     = allRows.length;
-  const pendente  = allRows.filter(r => r.status === 'pendente').length;
-  const andamento = allRows.filter(r => r.status === 'andamento').length;
-  const concluido = allRows.filter(r => r.status === 'concluido').length;
-  const critico   = allRows.filter(isCritico).length;
-  const totalRep  = allRows.reduce((a, r) => a + r.volRep, 0);
-  const totalFalt = allRows.reduce((a, r) => a + r.volFalt, 0);
+  const rows = filteredRows;
+  const total     = rows.length;
+  const pendente  = rows.filter(r => r.status === 'pendente').length;
+  const andamento = rows.filter(r => r.status === 'andamento').length;
+  const concluido = rows.filter(r => r.status === 'concluido').length;
+  const critico   = rows.filter(isCritico).length;
+  const totalRep  = rows.reduce((a, r) => a + r.volRep, 0);
+  const totalFalt = rows.reduce((a, r) => a + r.volFalt, 0);
+
+  const { from, to } = getGlobalPeriod();
+  const filtrado = from || to;
 
   const cards = [
-    { label: 'Total de notas',    value: total,                           cls: 'blue',  sub: 'em tratativa' },
-    { label: 'Pendentes',         value: pendente,                        cls: 'red',   sub: 'sem ação de compras' },
-    { label: 'Em andamento',      value: andamento,                       cls: 'amber', sub: 'aguardando retorno' },
-    { label: 'Concluídas',        value: concluido,                       cls: 'green', sub: 'resolvidas' },
-    { label: 'Críticas (+20d)',   value: critico,                         cls: 'red',   sub: 'sem solução há 20+ dias' },
-    { label: 'Vol. reprovado',    value: totalRep.toLocaleString('pt-BR'), cls: 'amber', sub: 'volume reprovado' },
-    { label: 'Vol. faltante',     value: totalFalt.toLocaleString('pt-BR'), cls: 'red', sub: 'volume faltante' },
+    { label: 'Total de notas',    value: total,                             cls: 'blue',  sub: filtrado ? 'no período' : 'em tratativa' },
+    { label: 'Pendentes',         value: pendente,                          cls: 'red',   sub: 'sem ação de compras' },
+    { label: 'Em andamento',      value: andamento,                         cls: 'amber', sub: 'aguardando retorno' },
+    { label: 'Concluídas',        value: concluido,                         cls: 'green', sub: 'resolvidas' },
+    { label: 'Críticas (+20d)',   value: critico,                           cls: 'red',   sub: 'sem solução há 20+ dias' },
+    { label: 'Vol. reprovado',    value: totalRep.toLocaleString('pt-BR'),  cls: 'amber', sub: 'volume reprovado' },
+    { label: 'Vol. faltante',     value: totalFalt.toLocaleString('pt-BR'),cls: 'red',   sub: 'volume faltante' },
   ];
 
   document.getElementById('kpi-grid').innerHTML = cards.map(c =>
@@ -664,12 +962,72 @@ function renderKPIs() {
       <div class="kpi-sub">${c.sub}</div>
     </div>`
   ).join('');
+
+  renderVolumeStatus();
 }
 
+// ── VOLUME POR STATUS ──
+function renderVolumeStatus() {
+  const rows = filteredRows;
+
+  const groups = {
+    pendente:  { label: 'Pendente',      color: '#c0392b', colorBar: '#c0392b' },
+    andamento: { label: 'Em andamento',  color: '#9a6200', colorBar: '#e8a000' },
+    concluido: { label: 'Concluído',     color: '#2d6a1f', colorBar: '#3a8a28' },
+  };
+
+  const data = {};
+  Object.keys(groups).forEach(k => {
+    const sub = rows.filter(r => r.status === k);
+    data[k] = {
+      count: sub.length,
+      volRep:  sub.reduce((a, r) => a + r.volRep, 0),
+      volFalt: sub.reduce((a, r) => a + r.volFalt, 0),
+    };
+  });
+
+  const maxVol = Math.max(1, ...Object.values(data).map(d => d.volRep + d.volFalt));
+
+  document.getElementById('vol-status-grid').innerHTML = Object.entries(groups).map(([k, g]) => {
+    const d = data[k];
+    const totalVol = d.volRep + d.volFalt;
+    const pct = Math.round((totalVol / maxVol) * 100);
+    return `
+      <div class="vol-card">
+        <div class="vol-card-header">
+          <span class="vol-dot" style="background:${g.color}"></span>
+          <span class="vol-card-label">${g.label}</span>
+          <span style="margin-left:auto;font-size:12px;font-weight:600;color:var(--text2)">${d.count} nota${d.count !== 1 ? 's' : ''}</span>
+        </div>
+        <div class="vol-rows">
+          <div class="vol-row">
+            <span class="vol-row-label">Vol. reprovado</span>
+            <span class="vol-row-val ${d.volRep > 0 ? 'red' : 'neutral'}">${d.volRep > 0 ? d.volRep.toLocaleString('pt-BR') : '—'}</span>
+          </div>
+          <div class="vol-row">
+            <span class="vol-row-label">Vol. faltante</span>
+            <span class="vol-row-val ${d.volFalt > 0 ? 'red' : 'neutral'}">${d.volFalt > 0 ? d.volFalt.toLocaleString('pt-BR') : '—'}</span>
+          </div>
+          <div class="vol-row" style="border-top:1px solid var(--border);padding-top:6px;margin-top:2px">
+            <span class="vol-row-label" style="font-weight:600;color:var(--text2)">Total volume</span>
+            <span class="vol-row-val" style="color:${g.color}">${totalVol > 0 ? totalVol.toLocaleString('pt-BR') : '—'}</span>
+          </div>
+        </div>
+        <div class="vol-bar-wrap">
+          <div class="vol-bar" style="width:${pct}%;background:${g.colorBar}"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── RENDER CHARTS (usa filteredRows) ──
 function renderCharts() {
-  // Fornecedor chart
+  const rows = filteredRows;
+
+  // Fornecedor
   const fornMap = {};
-  allRows.forEach(r => { fornMap[r.fornecedor] = (fornMap[r.fornecedor]||0) + 1; });
+  rows.forEach(r => { fornMap[r.fornecedor] = (fornMap[r.fornecedor]||0) + 1; });
   const fornSorted = Object.entries(fornMap).sort((a,b) => b[1]-a[1]).slice(0,10);
 
   if (charts.forn) charts.forn.destroy();
@@ -697,7 +1055,7 @@ function renderCharts() {
 
   // Status donut
   const stMap = { pendente: 0, andamento: 0, concluido: 0 };
-  allRows.forEach(r => { stMap[r.status] = (stMap[r.status]||0) + 1; });
+  rows.forEach(r => { stMap[r.status] = (stMap[r.status]||0) + 1; });
   const stColors = { pendente: '#c0392b', andamento: '#9a6200', concluido: '#2d6a1f' };
   const stLabels = { pendente: 'Pendente', andamento: 'Em andamento', concluido: 'Concluído' };
   const stVals   = Object.entries(stMap);
@@ -724,6 +1082,230 @@ function renderCharts() {
   });
 }
 
+// ── EVOLUÇÃO MENSAL ──
+function setEvolucaoMode(mode, el) {
+  currentEvolucaoMode = mode;
+  document.querySelectorAll('.evolucao-toggle-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderEvolucao();
+}
+
+function getMonthKey(dateStr) {
+  const d = parseDate(dateStr);
+  if (!d || isNaN(d)) return null;
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+function monthLabel(key) {
+  const [y, m] = key.split('-');
+  const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return months[parseInt(m)-1] + '/' + y.slice(2);
+}
+
+function renderEvolucao() {
+  // Agrupa por mês (usa allRows para ter histórico completo)
+  const byMonth = {};
+
+  allRows.forEach(r => {
+    const mk = getMonthKey(r.dtEntrega);
+    if (!mk) return;
+    if (!byMonth[mk]) byMonth[mk] = { pendente: 0, andamento: 0, concluido: 0, volRep_p: 0, volRep_a: 0, volRep_c: 0, volFalt_p: 0, volFalt_a: 0, volFalt_c: 0, total: 0 };
+    const m = byMonth[mk];
+    m[r.status]++;
+    m.total++;
+    if (r.status === 'pendente')  { m.volRep_p += r.volRep; m.volFalt_p += r.volFalt; }
+    if (r.status === 'andamento') { m.volRep_a += r.volRep; m.volFalt_a += r.volFalt; }
+    if (r.status === 'concluido') { m.volRep_c += r.volRep; m.volFalt_c += r.volFalt; }
+  });
+
+  const sortedKeys = Object.keys(byMonth).sort();
+  if (sortedKeys.length === 0) {
+    // Sem dados suficientes
+    return;
+  }
+
+  const labels = sortedKeys.map(monthLabel);
+  const isVol = currentEvolucaoMode === 'vol';
+
+  // Dados para barras empilhadas
+  const dPendente  = sortedKeys.map(k => isVol ? (byMonth[k].volRep_p + byMonth[k].volFalt_p) : byMonth[k].pendente);
+  const dAndamento = sortedKeys.map(k => isVol ? (byMonth[k].volRep_a + byMonth[k].volFalt_a) : byMonth[k].andamento);
+  const dConcluido = sortedKeys.map(k => isVol ? (byMonth[k].volRep_c + byMonth[k].volFalt_c) : byMonth[k].concluido);
+  const dTotal     = sortedKeys.map(k => isVol ? (byMonth[k].volRep_p + byMonth[k].volFalt_p + byMonth[k].volRep_a + byMonth[k].volFalt_a + byMonth[k].volRep_c + byMonth[k].volFalt_c) : byMonth[k].total);
+
+  document.getElementById('evol-chart-title').textContent = isVol
+    ? 'Volume por mês e status (reprov. + faltante)'
+    : 'Notas por mês e status';
+
+  if (charts.evolStack) charts.evolStack.destroy();
+  charts.evolStack = new Chart(document.getElementById('chart-evol-stack'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Pendente',     data: dPendente,  backgroundColor: '#c0392b', borderRadius: 0, stack: 's' },
+        { label: 'Em andamento', data: dAndamento, backgroundColor: '#e8a000', borderRadius: 0, stack: 's' },
+        { label: 'Concluído',    data: dConcluido, backgroundColor: '#3a8a28', borderRadius: 4, stack: 's' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'top', labels: { font: { size: 12, family: 'DM Sans' }, boxWidth: 12, padding: 16 } },
+        tooltip: {
+          callbacks: {
+            footer: (items) => {
+              const sum = items.reduce((a, i) => a + i.parsed.y, 0);
+              return 'Total: ' + sum.toLocaleString('pt-BR');
+            }
+          }
+        }
+      },
+      scales: {
+        x: { stacked: true, ticks: { font: { size: 11, family: 'DM Sans' }, color: '#6b6b66' }, grid: { display: false } },
+        y: { stacked: true, ticks: { font: { size: 11 }, color: '#6b6b66' }, grid: { color: 'rgba(0,0,0,.05)' } }
+      }
+    }
+  });
+
+  // Fluxo: linha de total e linha de concluídos
+  document.getElementById('evol-flux-title').textContent = isVol
+    ? 'Fluxo de volume — total acumulado vs resolvido'
+    : 'Fluxo de notas — total vs resolvidas por mês';
+
+  if (charts.evolFlux) charts.evolFlux.destroy();
+  charts.evolFlux = new Chart(document.getElementById('chart-evol-flux'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: isVol ? 'Volume total' : 'Total de notas',
+          data: dTotal,
+          borderColor: '#1a4f8a',
+          backgroundColor: 'rgba(26,79,138,0.08)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 4,
+          pointBackgroundColor: '#1a4f8a',
+        },
+        {
+          label: isVol ? 'Volume resolvido' : 'Notas concluídas',
+          data: dConcluido,
+          borderColor: '#3a8a28',
+          backgroundColor: 'rgba(58,138,40,0.08)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 4,
+          pointBackgroundColor: '#3a8a28',
+        },
+        {
+          label: isVol ? 'Volume pendente' : 'Pendentes',
+          data: dPendente,
+          borderColor: '#c0392b',
+          backgroundColor: 'rgba(0,0,0,0)',
+          borderWidth: 2,
+          borderDash: [5, 4],
+          tension: 0.3,
+          pointRadius: 3,
+          pointBackgroundColor: '#c0392b',
+        },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'top', labels: { font: { size: 12, family: 'DM Sans' }, boxWidth: 12, padding: 16 } }
+      },
+      scales: {
+        x: { ticks: { font: { size: 11, family: 'DM Sans' }, color: '#6b6b66' }, grid: { display: false } },
+        y: { ticks: { font: { size: 11 }, color: '#6b6b66' }, grid: { color: 'rgba(0,0,0,.05)' } }
+      }
+    }
+  });
+
+  renderMetas(byMonth, sortedKeys, isVol);
+}
+
+// ── METAS ──
+function renderMetas(byMonth, sortedKeys, isVol) {
+  // Pega o mês mais recente para cálculo do progresso
+  const lastKey = sortedKeys[sortedKeys.length - 1];
+  const lastMonth = byMonth[lastKey] || {};
+
+  const concluidoMes  = isVol ? (lastMonth.volRep_c + lastMonth.volFalt_c) : lastMonth.concluido || 0;
+  const pendenteMes   = isVol ? (lastMonth.volRep_p + lastMonth.volFalt_p) : lastMonth.pendente  || 0;
+  const totalVolMes   = isVol ? (lastMonth.volRep_p + lastMonth.volFalt_p + lastMonth.volRep_a + lastMonth.volFalt_a + lastMonth.volRep_c + lastMonth.volFalt_c) : lastMonth.total || 0;
+
+  const metaItems = [
+    {
+      id: 'concluir_mes',
+      label: isVol ? 'Volume resolvido (mês atual)' : 'Notas concluídas (mês atual)',
+      atual: concluidoMes,
+      meta: metas.concluir_mes,
+      color: '#3a8a28',
+      placeholder: isVol ? '500' : '10',
+    },
+    {
+      id: 'reduzir_pendente',
+      label: isVol ? 'Reduzir volume pendente' : 'Reduzir pendentes (mês atual)',
+      atual: pendenteMes,
+      meta: metas.reduzir_pendente,
+      color: '#c0392b',
+      placeholder: isVol ? '200' : '5',
+      inverse: true, // menor = melhor
+    },
+    {
+      id: 'total_mes',
+      label: isVol ? 'Volume total no período' : 'Total de notas no período',
+      atual: totalVolMes,
+      meta: metas.total_mes || 0,
+      color: '#1a4f8a',
+      placeholder: isVol ? '1000' : '30',
+      info: true,
+    },
+  ];
+
+  document.getElementById('metas-grid').innerHTML = metaItems.map(item => {
+    const pct = item.meta > 0
+      ? item.inverse
+        ? Math.max(0, Math.round((1 - item.atual / item.meta) * 100))
+        : Math.min(100, Math.round((item.atual / item.meta) * 100))
+      : 0;
+
+    const pctColor = pct >= 100 ? '#3a8a28' : pct >= 60 ? '#e8a000' : '#c0392b';
+
+    return `
+      <div class="meta-card">
+        <div class="meta-card-label">${item.label}</div>
+        <div class="meta-progress-wrap">
+          <div class="meta-progress-bar" style="width:${pct}%;background:${item.color}"></div>
+        </div>
+        <div class="meta-info">
+          <span class="meta-atual" style="color:${item.color}">${item.atual.toLocaleString('pt-BR')}</span>
+          <span class="meta-alvo">${item.meta > 0 ? 'Meta: ' + item.meta.toLocaleString('pt-BR') : 'Meta não definida'}</span>
+          <span class="meta-pct" style="color:${pctColor}">${item.meta > 0 ? pct + '%' : '—'}</span>
+        </div>
+        <div class="meta-input-group">
+          <label>Definir meta:</label>
+          <input type="number" id="meta-input-${item.id}" value="${item.meta || ''}" placeholder="${item.placeholder}" min="0">
+          <button class="meta-save-btn" onclick="saveMeta('${item.id}')">Salvar</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function saveMeta(id) {
+  const val = parseInt(document.getElementById('meta-input-' + id).value) || 0;
+  metas[id] = val;
+  localStorage.setItem('notas-metas', JSON.stringify(metas));
+  renderEvolucao();
+}
+
+// ── RENDER TABLE ──
 function statusBadge(s, raw) {
   if (s === 'concluido') return `<span class="badge badge-green">Concluído</span>`;
   if (s === 'andamento') return `<span class="badge badge-amber">${raw || 'Em andamento'}</span>`;
@@ -731,13 +1313,8 @@ function statusBadge(s, raw) {
 }
 
 function renderTable() {
-  const search   = (document.getElementById('search-input').value || '').toLowerCase();
-  const fromVal  = document.getElementById('date-from').value;
-  const toVal    = document.getElementById('date-to').value;
-  const fromDate = fromVal ? new Date(fromVal + 'T00:00:00') : null;
-  const toDate   = toVal   ? new Date(toVal   + 'T23:59:59') : null;
-  const hasDate  = fromDate || toDate;
-  document.getElementById('btn-clear-date').style.display = hasDate ? 'inline-block' : 'none';
+  const search = (document.getElementById('search-input').value || '').toLowerCase();
+  const { from: fromDate, to: toDate } = getGlobalPeriod();
 
   const filtered = allRows.filter(r => {
     if (currentFilter === 'pendente'  && r.status !== 'pendente') return false;
@@ -745,8 +1322,8 @@ function renderTable() {
     if (currentFilter === 'concluido' && r.status !== 'concluido') return false;
     if (currentFilter === 'critico'   && !isCritico(r)) return false;
     if (search) {
-      const haystack = [r.fornecedor, r.nf, r.desc, r.tipo, r.obsRec, r.obsComp].join(' ').toLowerCase();
-      if (!haystack.includes(search)) return false;
+      const hay = [r.fornecedor, r.nf, r.desc, r.tipo, r.obsRec, r.obsComp].join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
     }
     if (fromDate || toDate) {
       const d = parseDate(r.dtEntrega);
@@ -765,7 +1342,7 @@ function renderTable() {
     return;
   }
 
-  document.getElementById('table-body').innerHTML = filtered.map((r, i) => {
+  document.getElementById('table-body').innerHTML = filtered.map(r => {
     const idx = allRows.indexOf(r);
     const crit = isCritico(r);
     const dias = daysDiff(r.dtEntrega);
@@ -828,40 +1405,6 @@ function showDetail(idx) {
 function closeModal(e) {
   if (e.target === document.getElementById('modal-overlay'))
     document.getElementById('modal-overlay').classList.remove('open');
-}
-
-function clearDateFilter() {
-  document.getElementById('date-from').value = '';
-  document.getElementById('date-to').value   = '';
-  document.getElementById('btn-clear-date').style.display = 'none';
-  document.querySelectorAll('.date-preset').forEach(b => b.classList.remove('active'));
-  renderTable();
-}
-
-function setPreset(p) {
-  const now   = new Date();
-  const today = now.toISOString().slice(0,10);
-  let from, to = today;
-  if (p === 'week') {
-    const d = new Date(now); d.setDate(d.getDate() - d.getDay());
-    from = d.toISOString().slice(0,10);
-  } else if (p === 'month') {
-    from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
-  } else if (p === 'last30') {
-    const d = new Date(now); d.setDate(d.getDate() - 30);
-    from = d.toISOString().slice(0,10);
-  } else if (p === 'last60') {
-    const d = new Date(now); d.setDate(d.getDate() - 60);
-    from = d.toISOString().slice(0,10);
-  } else if (p === 'last90') {
-    const d = new Date(now); d.setDate(d.getDate() - 90);
-    from = d.toISOString().slice(0,10);
-  }
-  document.getElementById('date-from').value = from || '';
-  document.getElementById('date-to').value   = to;
-  document.querySelectorAll('.date-preset').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-  renderTable();
 }
 
 loadData();

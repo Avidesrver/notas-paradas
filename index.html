@@ -805,6 +805,12 @@
             <input id="mp-titulo" type="text" placeholder="Ex: NF 0042 – EBATA LTDA – volume reprovado parado há 30 dias" style="width:100%;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;border:2px solid rgba(0,0,0,.1);border-radius:8px;padding:10px 12px;outline:none;background:#fafaf8;">
           </div>
 
+          <!-- Responsável -->
+          <div style="margin-bottom:14px;">
+            <label style="font-size:11px;font-weight:600;color:#9e9e98;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Responsável pelo plano</label>
+            <input id="mp-resp" type="text" placeholder="Ex: João Silva — Compras" style="width:100%;font-family:'DM Sans',sans-serif;font-size:14px;border:2px solid rgba(0,0,0,.1);border-radius:8px;padding:10px 12px;outline:none;background:#fafaf8;">
+          </div>
+
           <!-- Descrição -->
           <div style="margin-bottom:14px;">
             <label style="font-size:11px;font-weight:600;color:#9e9e98;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Descrição do problema</label>
@@ -2057,6 +2063,7 @@ function renderCardPlano(p) {
               ${atrasado ? `<span style="font-size:11px;font-weight:700;background:#fdf0ef;color:#c0392b;border-radius:99px;padding:2px 10px;">🔴 ${diasAtraso}d atrasado</span>` : ''}
               ${conclusaoInfo}
             </div>
+            ${p.responsavel ? `<div style="margin-bottom:6px;"><span style="font-size:12px;font-weight:500;background:#f0efe9;color:#6b6b66;border:1px solid rgba(0,0,0,.1);border-radius:99px;padding:2px 10px;">👤 ${p.responsavel}</span></div>` : ''}
             ${p.desc ? `<div style="font-size:13px;color:#6b6b66;margin-bottom:8px;">${p.desc}</div>` : ''}
             <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
               <span style="font-size:12px;color:#9e9e98;">🔒 Prazo inicial: <strong style="color:${atrasado ? '#c0392b' : '#1a1a18'}">${prazoD ? fmtDate(p.prazo) : '—'}</strong></span>
@@ -2146,9 +2153,10 @@ function abrirModalPlano(id) {
   const p = id ? planos.find(x => x.id === id) : null;
 
   document.getElementById('modal-plano-titulo').textContent = p ? 'Editar plano' : 'Novo plano de ação';
-  document.getElementById('mp-titulo').value = p ? p.titulo : '';
-  document.getElementById('mp-desc').value   = p ? p.desc   : '';
-  document.getElementById('mp-prior').value  = p ? p.prioridade : 'media';
+  document.getElementById('mp-titulo').value = p ? p.titulo      : '';
+  document.getElementById('mp-resp').value   = p ? (p.responsavel || '') : '';
+  document.getElementById('mp-desc').value   = p ? p.desc         : '';
+  document.getElementById('mp-prior').value  = p ? p.prioridade   : 'media';
 
   if (p) {
     document.getElementById('mp-prazo').value = p.prazo || '';
@@ -2208,6 +2216,7 @@ function adicionarTarefaForm() {
 
 async function salvarPlano() {
   const titulo = document.getElementById('mp-titulo').value.trim();
+  const resp   = document.getElementById('mp-resp').value.trim();
   const desc   = document.getElementById('mp-desc').value.trim();
   const prazo  = document.getElementById('mp-prazo').value;
   const prior  = document.getElementById('mp-prior').value;
@@ -2218,15 +2227,16 @@ async function salvarPlano() {
   if (planoEditandoId) {
     const p = planos.find(x => x.id === planoEditandoId);
     if (p) {
-      p.titulo = titulo;
-      p.desc   = desc;
-      p.prioridade = prior;
-      p.tarefas = tarefasTemp;
+      p.titulo       = titulo;
+      p.responsavel  = resp;
+      p.desc         = desc;
+      p.prioridade   = prior;
+      p.tarefas      = tarefasTemp;
     }
   } else {
     planos.unshift({
       id: 'p' + Date.now(),
-      titulo, desc, prazo, prioridade: prior,
+      titulo, responsavel: resp, desc, prazo, prioridade: prior,
       status: 'aberto',
       tarefas: tarefasTemp,
       criadoEm: new Date().toLocaleDateString('pt-BR'),

@@ -1041,7 +1041,7 @@ async function loadData() {
 
   try {
     const res = await fetch(url);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    if (!res.ok) throw new Error('HTTPS ' + res.status);
     const text = await res.text();
     const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
 
@@ -1555,7 +1555,7 @@ function renderTable() {
       <td>${statusBadge(r.status, r.statusRaw)}</td>
       <td class="obs-cell" onclick="showDetail(${idx})" title="${(r.obsRec||'').replace(/"/g,'&quot;')}">${r.obsRec || '<span style="color:#c8c8c0">—</span>'}</td>
       <td class="obs-cell" onclick="showDetail(${idx})" title="${(r.obsComp||'').replace(/"/g,'&quot;')}">${r.obsComp || '<span style="color:#c0392b;font-size:11px">Sem retorno</span>'}</td>
-      <td>${r.linkForm && r.linkForm.startsWith('http') ? `<a href="${r.linkForm}" target="_blank" class="link-btn">Ver ↗</a>` : '—'}</td>
+      <td>${r.linkForm && r.linkForm.startsWith('https') ? `<a href="${r.linkForm}" target="_blank" class="link-btn">Ver ↗</a>` : '—'}</td>
     </tr>`;
   }).join('');
 }
@@ -1593,7 +1593,7 @@ function showDetail(idx) {
       <p style="${!r.obsComp ? 'color:#c0392b' : ''}">${r.obsComp || 'Sem retorno do setor de compras'}</p>
     </div>
     ${crit ? `<div class="modal-critico-alert">Nota crítica — ${dias} dias sem resolução. Cobrar ação imediata de compras.</div>` : ''}
-    ${r.linkForm && r.linkForm.startsWith('http') ? `<div style="margin-top:14px"><a href="${r.linkForm}" target="_blank" class="link-btn" style="font-size:13px;padding:6px 14px">Ver formulário de inspeção ↗</a></div>` : ''}
+    ${r.linkForm && r.linkForm.startsWith('https') ? `<div style="margin-top:14px"><a href="${r.linkForm}" target="_blank" class="link-btn" style="font-size:13px;padding:6px 14px">Ver formulário de inspeção ↗</a></div>` : ''}
   `;
   document.getElementById('modal-overlay').classList.add('open');
 }

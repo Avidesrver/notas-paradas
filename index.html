@@ -561,6 +561,7 @@
     </div>
   </div>
   <div class="header-right">
+    <span id="sync-badge" style="font-size:12px;font-weight:500;padding:4px 12px;border-radius:99px;border:1px solid #a8d898;background:#edf6e8;color:#2d6a1f;">🟢 Compartilhado</span>
     <span class="badge-date" id="today-label"></span>
     <button id="btn-reload" onclick="loadData()">Atualizar dados</button>
   </div>
@@ -865,25 +866,6 @@
 
 <div class="footer" id="footer-info"></div>
 
-<!-- MODAL PIN -->
-<div id="modal-pin" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:#fff;border-radius:12px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.25);">
-    <div style="padding:28px;">
-      <div style="font-size:24px;text-align:center;margin-bottom:12px;">🔒</div>
-      <div style="font-size:15px;font-weight:700;text-align:center;margin-bottom:4px;">Autenticação necessária</div>
-      <div style="font-size:13px;color:#6b6b66;text-align:center;margin-bottom:20px;">Informe o PIN para <span id="pin-acao-label">esta ação</span></div>
-      <input id="pin-input" type="password" inputmode="numeric" maxlength="10" placeholder="Digite o PIN"
-        onkeydown="if(event.key==='Enter')confirmarPin()"
-        style="width:100%;font-family:'DM Sans',sans-serif;font-size:18px;font-weight:600;letter-spacing:.2em;text-align:center;border:2px solid rgba(0,0,0,.12);border-radius:8px;padding:12px;outline:none;background:#fafaf8;margin-bottom:10px;">
-      <div id="pin-erro" style="display:none;font-size:12px;color:#c0392b;text-align:center;margin-bottom:10px;"></div>
-      <div style="display:flex;gap:8px;">
-        <button onclick="fecharModalPin()" style="flex:1;font-size:13px;border:1px solid rgba(0,0,0,.15);border-radius:8px;padding:10px;cursor:pointer;background:#fff;color:#6b6b66;">Cancelar</button>
-        <button id="pin-btn-confirmar" onclick="confirmarPin()" style="flex:2;font-size:13px;font-weight:600;background:#1a1a18;color:#fff;border:none;border-radius:8px;padding:10px;cursor:pointer;">Confirmar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- MODAL -->
 <div id="modal-overlay" onclick="closeModal(event)">
   <div class="modal-box">
@@ -900,16 +882,14 @@
 
 <script>
 const SHEET_ID = '1MFnPmUfxxzE1gjJzGVlVmdFOaHI-TmqonLnRGQNNQC8';
-const GID      = '1456714907';  // Tratativa - Fornecedor (Compras)
-const GID_ACOMP = '0';           // Acompanhamento_r1
-const GID_PLANOS = '1689076033'; // Planos_Acao
+const GID      = '1456714907';
 
 let allRows = [];
 let filteredRows = []; // rows após filtro de período
 let currentFilter = 'all';
 let currentEvolucaoMode = 'qtd';
 let charts = {};
-let metas = JSON.parse(localStorage.getItem('notas-metas') || '{"concluir_mes":10,"reduzir_pendente":5,"reduzir_vol":1000}');
+let metas = {"concluir_mes":10,"reduzir_pendente":5,"reduzir_vol":1000};
 
 document.getElementById('today-label').textContent = new Date().toLocaleDateString('pt-BR', { weekday:'short', day:'2-digit', month:'short', year:'numeric' });
 
@@ -920,7 +900,6 @@ function switchTab(id, el) {
   el.classList.add('active');
   document.getElementById('tab-' + id).classList.add('active');
   if (id === 'evolucao') renderEvolucao();
-  if (id === 'acao') renderAcao();
 }
 
 // ── DATE UTILS ──
@@ -1036,45 +1015,14 @@ async function loadData() {
   document.getElementById('loading').style.display = 'flex';
   document.getElementById('content').style.display  = 'none';
   document.getElementById('error-msg').style.display = 'none';
-  document.querySelector('#loading p').textContent = 'Conectando à planilha...';
 
-  // Usa JSONP via callback para evitar bloqueio de CORS do Google Sheets
-  function fetchGviz(gid) {
-    return new Promise((resolve, reject) => {
-      const cbName = '_gviz_cb_' + Date.now();
-      const timeout = setTimeout(() => {
-        delete window[cbName];
-        script.remove();
-        reject(new Error('Tempo limite atingido (15s) — a planilha demorou demais. Verifique se está pública.'));
-      }, 15000);
-
-      window[cbName] = function(data) {
-        clearTimeout(timeout);
-        delete window[cbName];
-        script.remove();
-        resolve(data);
-      };
-
-      const script = document.createElement('script');
-      script.onerror = () => {
-        clearTimeout(timeout);
-        delete window[cbName];
-        reject(new Error('Falha ao carregar a planilha — verifique conexão e se a planilha está pública.'));
-      };
-      script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;handler:${cbName}&gid=${gid}&headers=1`;
-      document.head.appendChild(script);
-    });
-  }
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
 
   try {
-    document.querySelector('#loading p').textContent = 'Buscando dados da planilha...';
-    const json = await fetchGviz(GID);
-
-    document.querySelector('#loading p').textContent = 'Processando dados...';
-
-    if (!json.table || !json.table.rows) {
-      throw new Error('Estrutura de dados inválida — a aba pode estar vazia ou o GID incorreto');
-    }
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
 
     const rows = json.table.rows;
 
@@ -1123,20 +1071,9 @@ async function loadData() {
     document.getElementById('loading').style.display = 'none';
     const err = document.getElementById('error-msg');
     err.style.display = 'block';
-
-    const msg = e.message || 'Erro desconhecido ao carregar a planilha.';
-
-    err.innerHTML = `
-      <strong>Não foi possível carregar os dados.</strong><br><br>
-      <strong>Motivo:</strong> ${msg}<br><br>
-      <strong>Verifique:</strong><br>
-      1. A planilha está pública? (Compartilhar → Qualquer pessoa com o link pode visualizar)<br>
-      2. O GID está correto? GID atual: <code style="background:#fde;padding:1px 5px;border-radius:3px">${GID}</code><br>
-      3. A aba <em>Tratativa — Fornecedor (Compras)</em> existe na planilha?<br><br>
-      <button onclick="loadData()" style="font-size:13px;font-weight:500;background:#1a1a18;color:#fff;border:none;border-radius:6px;padding:8px 18px;cursor:pointer;">↻ Tentar novamente</button>`;
+    err.innerHTML = `<strong>Não foi possível carregar os dados.</strong><br>Verifique se a planilha está pública (Compartilhar → qualquer pessoa com o link).<br><br>Detalhe: ${e.message}`;
   }
 }
-
 
 // ── RENDER KPIs (usa filteredRows) ──
 function renderKPIs() {
@@ -1536,10 +1473,10 @@ function renderMetas(byMonth, sortedKeys, isVol) {
   }).join('');
 }
 
-function saveMeta(id) {
+async function saveMeta(id) {
   const val = parseInt(document.getElementById('meta-input-' + id).value) || 0;
   metas[id] = val;
-  localStorage.setItem('notas-metas', JSON.stringify(metas));
+  await DB.save();
   renderEvolucao();
 }
 
@@ -1597,7 +1534,7 @@ function renderTable() {
       <td>${statusBadge(r.status, r.statusRaw)}</td>
       <td class="obs-cell" onclick="showDetail(${idx})" title="${(r.obsRec||'').replace(/"/g,'&quot;')}">${r.obsRec || '<span style="color:#c8c8c0">—</span>'}</td>
       <td class="obs-cell" onclick="showDetail(${idx})" title="${(r.obsComp||'').replace(/"/g,'&quot;')}">${r.obsComp || '<span style="color:#c0392b;font-size:11px">Sem retorno</span>'}</td>
-      <td>${r.linkForm && r.linkForm.startsWith('https') ? `<a href="${r.linkForm}" target="_blank" class="link-btn">Ver ↗</a>` : '—'}</td>
+      <td>${r.linkForm && r.linkForm.startsWith('http') ? `<a href="${r.linkForm}" target="_blank" class="link-btn">Ver ↗</a>` : '—'}</td>
     </tr>`;
   }).join('');
 }
@@ -1635,7 +1572,7 @@ function showDetail(idx) {
       <p style="${!r.obsComp ? 'color:#c0392b' : ''}">${r.obsComp || 'Sem retorno do setor de compras'}</p>
     </div>
     ${crit ? `<div class="modal-critico-alert">Nota crítica — ${dias} dias sem resolução. Cobrar ação imediata de compras.</div>` : ''}
-    ${r.linkForm && r.linkForm.startsWith('https') ? `<div style="margin-top:14px"><a href="${r.linkForm}" target="_blank" class="link-btn" style="font-size:13px;padding:6px 14px">Ver formulário de inspeção ↗</a></div>` : ''}
+    ${r.linkForm && r.linkForm.startsWith('http') ? `<div style="margin-top:14px"><a href="${r.linkForm}" target="_blank" class="link-btn" style="font-size:13px;padding:6px 14px">Ver formulário de inspeção ↗</a></div>` : ''}
   `;
   document.getElementById('modal-overlay').classList.add('open');
 }
@@ -1649,7 +1586,7 @@ function closeModal(e) {
 // CENTRAL DE AÇÃO
 // ══════════════════════════════════════════
 
-let acoesRegistradas = JSON.parse(localStorage.getItem('notas-acoes') || '[]');
+let acoesRegistradas = [];
 
 function renderAcao() {
   const criticos = allRows.filter(isCritico);
@@ -1663,24 +1600,10 @@ function renderAcao() {
   const fornCriticos = [...new Set(criticos.map(r => r.fornecedor))];
   document.getElementById('acao-alerta-sub').textContent =
     criticos.length > 0
-      ? `Fornecedores: ${fornCriticos.slice(0,5).join(', ')}${fornCriticos.length > 5 ? ` e mais ${fornCriticos.length - 5}` : ''}`
+      ? `Fornecedores envolvidos: ${fornCriticos.slice(0,5).join(', ')}${fornCriticos.length > 5 ? ` e mais ${fornCriticos.length - 5}` : ''}`
       : 'Continue monitorando o painel de evolução mensal.';
 
-  if (!scriptConfigurado()) {
-    document.getElementById('lista-planos').innerHTML = `
-      <div style="background:#fef8ec;border:1px solid #f5d98a;border-radius:12px;padding:28px;text-align:center;">
-        <div style="font-size:20px;margin-bottom:10px;">⚙️</div>
-        <div style="font-size:14px;font-weight:600;color:#9a6200;margin-bottom:6px;">Apps Script não configurado</div>
-        <div style="font-size:13px;color:#6b6b66;line-height:1.7;">
-          Siga as instruções no arquivo <strong>planos_backend.gs</strong> para configurar o backend.<br>
-          Depois cole a URL gerada na variável <code style="background:#f0efe9;padding:1px 6px;border-radius:4px;">SCRIPT_URL</code> no topo do script.
-        </div>
-      </div>`;
-    document.getElementById('planos-resumo').innerHTML = '';
-    return;
-  }
-
-  carregarPlanos();
+  renderListaAcoes();
 }
 
 // ── Prioridade: score = dias_parado * (1 + vol/100) ──
@@ -1899,18 +1822,101 @@ function copiarOutput() {
   });
 }
 
-// ══════════════════════════════════════════
-// CENTRAL DE AÇÃO — PLANOS HIERÁRQUICOS
-// Backend: Google Apps Script (planilha compartilhada)
-// ══════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+// DB — JSONBin.io  (armazenamento compartilhado)
+// Bin e chave fixos — todos os usuários lêem e escrevem no mesmo lugar.
+// ══════════════════════════════════════════════════════════
+const JSONBIN_API = 'https://api.jsonbin.io/v3';
+const JSONBIN_KEY = '$2a$10$RWlS0HYjce5Rc9/5PjZXHekEx290eYWiuNXOxI7Ke5vYuLr5ZLMmy';
+const JSONBIN_BIN = '6a05be89c0954111d8215e05';
 
-// ⚠️ Cole aqui a URL da sua implantação do Apps Script:
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyv3LJMCpfJPP0xz1HNcMAFeCC6xPgExabXIYlHfsH18umnylJtAzH_CVE-6z9vwfpF/exec';
+// --- ADIÇÃO DA SENHA ---
+const SENHA_MESTRA = '1234'; // <--- Altere para a senha que desejar
+let acessoAutorizado = false; 
+
+function validarAcesso() {
+    if (acessoAutorizado) return true;
+    const tentativa = prompt("🔒 Área Restrita: Digite a senha para salvar alterações:");
+    if (tentativa === SENHA_MESTRA) {
+        acessoAutorizado = true; 
+        return true;
+    }
+    alert("❌ Senha incorreta! As alterações não serão salvas na nuvem.");
+    return false;
+}
+// -----------------------
+
+const DB = {
+  binId: JSONBIN_BIN,
+
+  _headers(write = false) {
+    const h = { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY };
+    if (!write) h['X-Bin-Meta'] = 'false';
+    return h;
+  },
+
+  async init() {
+    setSyncBadge('⏳ Conectando…', '#9a6200', '#fef8ec', '#f5d98a');
+    await this.load();
+  },
+
+  async load() {
+    try {
+      const res = await fetch(`${JSONBIN_API}/b/${this.binId}/latest`, { headers: this._headers() });
+      const data = await res.json();
+      const rec = data.record || data;
+      planos            = rec.planos   || [];
+      metas             = rec.metas   || metas;
+      acoesRegistradas  = rec.acoes   || [];
+      setSyncBadge('🟢 Compartilhado', '#2d6a1f', '#edf6e8', '#a8d898');
+    } catch(e) {
+      setSyncBadge('⚠️ Sem conexão', '#c0392b', '#fdf0ef', '#f5c6c3');
+    }
+    renderResumoPlanosRapido();
+    renderListaPlanos();
+  },
+
+  async save() {
+    // Solicita a senha antes de iniciar o processo de salvamento
+    if (!validarAcesso()) return; 
+
+    setSyncBadge('💾 Salvando…', '#1a4f8a', '#eaf1fb', '#b5d4f4');
+    try {
+      await fetch(`${JSONBIN_API}/b/${this.binId}`, {
+        method: 'PUT',
+        headers: this._headers(true),
+        body: JSON.stringify({ planos, metas, acoes: acoesRegistradas })
+      });
+      setSyncBadge('✅ Salvo', '#2d6a1f', '#edf6e8', '#a8d898');
+      setTimeout(() => setSyncBadge('🟢 Compartilhado', '#2d6a1f', '#edf6e8', '#a8d898'), 2000);
+    } catch(e) {
+      setSyncBadge('⚠️ Erro ao salvar', '#c0392b', '#fdf0ef', '#f5c6c3');
+    }
+  }
+};
+function setSyncBadge(txt, color, bg, border) {
+  const b = document.getElementById('sync-badge');
+  if (!b) return;
+  b.textContent = txt;
+  b.style.color = color;
+  b.style.background = bg;
+  b.style.borderColor = border;
+}
+
+// ── Auto-refresh a cada 30s ──
+let _pollTimer = null;
+function startPolling() {
+  if (_pollTimer) return;
+  _pollTimer = setInterval(() => DB.load(), 30000);
+}
 
 let planos = [];
 let planoEditandoId = null;
 let planoConcluindoId = null;
-let pinSessao = null; // PIN validado na sessão atual
+
+async function salvarPlanos() {
+  await DB.save();
+}
 
 const PRIOR_CONFIG = {
   critica: { label: '🔴 Crítica',  bg: '#fdf0ef', border: '#f5c6c3', color: '#c0392b' },
@@ -1923,565 +1929,12 @@ const SETOR_COLORS = {
   'Fornecedor':'#c0392b','Logística':'#2d6a1f','Outro':'#6b6b66'
 };
 
-// ── SCRIPT URL CONFIGURADA? ──
-function scriptConfigurado() {
-  return SCRIPT_URL && SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbyv3LJMCpfJPP0xz1HNcMAFeCC6xPgExabXIYlHfsH18umnylJtAzH_CVE-6z9vwfpF/exec';
-}
-
-// ── API ──
-async function apiGet() {
-  if (!scriptConfigurado()) return [];
-  const res  = await fetch(SCRIPT_URL);
-  const data = await res.json();
-  return data.ok ? data.planos : [];
-}
-
-async function apiPost(payload) {
-  if (!scriptConfigurado()) throw new Error('Script URL não configurada.');
-  const res  = await fetch(SCRIPT_URL, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
-  return await res.json();
-}
-
-// ── PIN ──
-function temPin() { return !!pinSessao; }
-
-async function pedirPin(acao) {
-  return new Promise(resolve => {
-    document.getElementById('pin-acao-label').textContent = acao || 'esta ação';
-    document.getElementById('pin-input').value = '';
-    document.getElementById('pin-erro').style.display = 'none';
-    document.getElementById('modal-pin').style.display = 'flex';
-    document.getElementById('pin-input').focus();
-    window._pinResolve = resolve;
-  });
-}
-
-async function confirmarPin() {
-  const pin = document.getElementById('pin-input').value.trim();
-  if (!pin) return;
-  // Testa PIN via POST com um plano fake
-  document.getElementById('pin-btn-confirmar').textContent = 'Verificando...';
-  document.getElementById('pin-btn-confirmar').disabled = true;
-  try {
-    // Usamos ação 'ping' só para validar o PIN
-    const r = await apiPost({ acao: 'ping', pin });
-    if (r.ok || r.erro !== 'PIN incorreto.') {
-      // PIN aceito (mesmo que ação seja desconhecida, o erro não é de PIN)
-      pinSessao = pin;
-      fecharModalPin();
-      if (window._pinResolve) window._pinResolve(true);
-    } else {
-      document.getElementById('pin-erro').style.display = 'block';
-      document.getElementById('pin-erro').textContent = '❌ PIN incorreto. Tente novamente.';
-    }
-  } catch(e) {
-    document.getElementById('pin-erro').style.display = 'block';
-    document.getElementById('pin-erro').textContent = '⚠️ Erro de conexão. Verifique a URL do script.';
-  } finally {
-    document.getElementById('pin-btn-confirmar').textContent = 'Confirmar';
-    document.getElementById('pin-btn-confirmar').disabled = false;
-  }
-}
-
-function fecharModalPin() {
-  document.getElementById('modal-pin').style.display = 'none';
-  if (window._pinResolve) { window._pinResolve(false); window._pinResolve = null; }
-}
-
-async function garantirPin(acao) {
-  if (temPin()) return true;
-  return await pedirPin(acao);
-}
+// salvarPlanos() definida acima como async → DB.save()
 
 // ── RENDER CENTRAL ──
 async function renderAcao() {
-  const criticos = allRows.filter(isCritico);
-  const volCritico = criticos.reduce((a, r) => a + r.volRep + r.volFalt, 0);
-  document.getElementById('acao-alerta-titulo').textContent =
-    criticos.length > 0
-      ? `${criticos.length} nota${criticos.length > 1 ? 's' : ''} crítica${criticos.length > 1 ? 's' : ''} exigem ação imediata — ${volCritico.toLocaleString('pt-BR')} un. de volume em risco`
-      : '✅ Nenhuma nota crítica no momento';
-  const fornCriticos = [...new Set(criticos.map(r => r.fornecedor))];
-  document.getElementById('acao-alerta-sub').textContent =
-    criticos.length > 0
-      ? `Fornecedores: ${fornCriticos.slice(0,5).join(', ')}${fornCriticos.length > 5 ? ` e mais ${fornCriticos.length-5}` : ''}`
-      : 'Continue monitorando o painel de evolução mensal.';
-
-  if (!scriptConfigurado()) {
-    document.getElementById('lista-planos').innerHTML = `
-      <div style="background:#fef8ec;border:1px solid #f5d98a;border-radius:12px;padding:28px;text-align:center;">
-        <div style="font-size:20px;margin-bottom:10px;">⚙️</div>
-        <div style="font-size:14px;font-weight:600;color:#9a6200;margin-bottom:6px;">Apps Script não configurado</div>
-        <div style="font-size:13px;color:#6b6b66;line-height:1.7;">
-          Siga as instruções no arquivo <strong>planos_backend.gs</strong> para configurar o backend.<br>
-          Depois cole a URL gerada na variável <code style="background:#f0efe9;padding:1px 6px;border-radius:4px;">SCRIPT_URL</code> no topo do script.
-        </div>
-      </div>`;
-    document.getElementById('planos-resumo').innerHTML = '';
-    return;
-  }
-
-  await carregarPlanos();
-}
-
-async function carregarPlanos() {
-  document.getElementById('lista-planos').innerHTML = `
-    <div style="padding:40px;text-align:center;color:#9e9e98;">
-      <div style="width:24px;height:24px;border:3px solid #e0e0d8;border-top-color:#1a1a18;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;"></div>
-      Carregando planos da planilha...
-    </div>`;
-  try {
-    planos = await apiGet();
-    renderResumoPlanosRapido();
-    renderListaPlanos();
-  } catch(e) {
-    document.getElementById('lista-planos').innerHTML = `
-      <div style="background:#fdf0ef;border:1px solid #f5c6c3;border-radius:10px;padding:20px;color:#c0392b;font-size:13px;">
-        ⚠️ Erro ao carregar planos: ${e.message}
-      </div>`;
-  }
-}
-
-function renderResumoPlanosRapido() {
-  const total     = planos.length;
-  const abertos   = planos.filter(p => p.status === 'aberto').length;
-  const atrasados = planos.filter(p => p.status === 'aberto' && p.prazo && new Date(p.prazo) < new Date()).length;
-  const concluidos= planos.filter(p => p.status === 'concluido').length;
-
-  const items = [
-    { label: 'Planos abertos',   val: abertos,    color: '#1a4f8a' },
-    { label: 'Atrasados',        val: atrasados,  color: '#c0392b' },
-    { label: 'Concluídos',       val: concluidos, color: '#2d6a1f' },
-    { label: 'Total de planos',  val: total,      color: '#6b6b66' },
-  ];
-
-  document.getElementById('planos-resumo').innerHTML = items.map(i => `
-    <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:14px 16px;">
-      <div style="font-size:11px;font-weight:600;color:#9e9e98;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">${i.label}</div>
-      <div style="font-size:26px;font-weight:700;color:${i.color};letter-spacing:-0.03em;">${i.val}</div>
-    </div>`).join('');
-}
-
-// ── RENDER LISTA ──
-function renderListaPlanos() {
-  const el = document.getElementById('lista-planos');
-  if (planos.length === 0) {
-    el.innerHTML = `
-      <div style="background:#fff;border:2px dashed rgba(0,0,0,.1);border-radius:12px;padding:48px;text-align:center;">
-        <div style="font-size:32px;margin-bottom:12px;">📋</div>
-        <div style="font-size:15px;font-weight:600;color:#1a1a18;margin-bottom:6px;">Nenhum plano de ação ainda</div>
-        <div style="font-size:13px;color:#9e9e98;margin-bottom:20px;">Crie o primeiro plano para começar a resolver as notas críticas</div>
-        <button onclick="abrirModalPlano()" style="font-size:13px;font-weight:600;background:#1a1a18;color:#fff;border:none;border-radius:8px;padding:10px 24px;cursor:pointer;">+ Criar primeiro plano</button>
-      </div>`;
-    return;
-  }
-
-  const ordemPrior = { critica: 0, alta: 1, media: 2, baixa: 3 };
-  const sorted = [...planos].sort((a, b) => {
-    if (a.status !== b.status) return a.status === 'aberto' ? -1 : 1;
-    return (ordemPrior[a.prioridade]||2) - (ordemPrior[b.prioridade]||2);
-  });
-
-  el.innerHTML = sorted.map(p => renderCardPlano(p)).join('');
-}
-
-function renderCardPlano(p) {
-  const pc     = PRIOR_CONFIG[p.prioridade] || PRIOR_CONFIG.media;
-  const hoje   = new Date(); hoje.setHours(0,0,0,0);
-  const prazoD = p.prazo ? new Date(p.prazo + 'T00:00:00') : null;
-  const atrasado = p.status === 'aberto' && prazoD && prazoD < hoje;
-  const diasAtraso = atrasado ? Math.floor((hoje - prazoD) / 86400000) : 0;
-
-  let conclusaoInfo = '';
-  if (p.status === 'concluido' && p.dataConclusao && p.prazo) {
-    const dc = new Date(p.dataConclusao + 'T00:00:00');
-    const pr = new Date(p.prazo + 'T00:00:00');
-    const diff = Math.floor((dc - pr) / 86400000);
-    conclusaoInfo = diff <= 0
-      ? `<span style="font-size:11px;font-weight:600;color:#2d6a1f;background:#edf6e8;border-radius:99px;padding:2px 9px;">✅ No prazo${diff < 0 ? ` (${Math.abs(diff)}d antes)` : ''}</span>`
-      : `<span style="font-size:11px;font-weight:600;color:#c0392b;background:#fdf0ef;border-radius:99px;padding:2px 9px;">⚠️ ${diff}d de atraso</span>`;
-  }
-
-  const tarefas    = p.tarefas || [];
-  const tConcluidas = tarefas.filter(t => t.concluida).length;
-  const tTotal     = tarefas.length;
-  const pctTarefas = tTotal > 0 ? Math.round((tConcluidas / tTotal) * 100) : 0;
-  const concluido  = p.status === 'concluido';
-
-  const tarefasHTML = tarefas.map((t, ti) => {
-    const tAtrasada = t.prazo && !t.concluida && new Date(t.prazo + 'T00:00:00') < hoje;
-    const sc = SETOR_COLORS[t.setor] || '#6b6b66';
-    return `
-      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;background:${t.concluida ? '#f7f6f2' : '#fff'};border:1px solid ${tAtrasada ? '#f5c6c3' : 'rgba(0,0,0,.07)'};margin-bottom:6px;">
-        <button onclick="toggleTarefa('${p.id}',${ti})" style="width:20px;height:20px;min-width:20px;border-radius:50%;border:2px solid ${t.concluida ? '#3a8a28' : '#d0d0c8'};background:${t.concluida ? '#3a8a28' : '#fff'};cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;font-size:11px;color:#fff;">${t.concluida ? '✓' : ''}</button>
-        <div style="flex:1;min-width:0;">
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px;">
-            <span style="font-size:13px;font-weight:600;color:${t.concluida ? '#9e9e98' : '#1a1a18'};${t.concluida ? 'text-decoration:line-through;' : ''}">${t.responsavel || '—'}</span>
-            <span style="font-size:11px;font-weight:500;background:${sc}18;color:${sc};border-radius:99px;padding:1px 8px;">${t.setor || '—'}</span>
-            ${t.prazo ? `<span style="font-size:11px;color:${tAtrasada ? '#c0392b' : '#9e9e98'};">📅 ${fmtDate(t.prazo)}${tAtrasada ? ' ⚠️' : ''}</span>` : ''}
-          </div>
-          <div style="font-size:12px;color:${t.concluida ? '#b0b0a8' : '#6b6b66'};">${t.desc || '—'}</div>
-        </div>
-        ${!concluido ? `<button onclick="editarTarefaInline('${p.id}',${ti})" style="font-size:11px;color:#9e9e98;background:none;border:none;cursor:pointer;padding:2px 4px;" title="Editar">✏️</button>` : ''}
-      </div>`;
-  }).join('');
-
-  return `
-    <div id="plano-${p.id}" style="background:#fff;border:1px solid ${atrasado ? '#f5c6c3' : concluido ? 'rgba(0,0,0,.06)' : 'rgba(0,0,0,.1)'};border-radius:12px;margin-bottom:14px;overflow:hidden;opacity:${concluido ? '.75' : '1'};">
-      <div style="padding:18px 20px;border-bottom:1px solid rgba(0,0,0,.06);background:${atrasado ? '#fdf5f4' : concluido ? '#f9f9f7' : '#fafaf8'};">
-        <div style="display:flex;align-items:flex-start;gap:12px;">
-          <div style="flex:1;min-width:0;">
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
-              <span style="font-size:15px;font-weight:700;color:#1a1a18;">${p.titulo}</span>
-              <span style="font-size:11px;font-weight:600;background:${pc.bg};border:1px solid ${pc.border};color:${pc.color};border-radius:99px;padding:2px 10px;">${pc.label}</span>
-              ${concluido ? `<span style="font-size:11px;font-weight:600;background:#edf6e8;color:#2d6a1f;border-radius:99px;padding:2px 10px;">✅ Concluído</span>` : ''}
-              ${atrasado ? `<span style="font-size:11px;font-weight:700;background:#fdf0ef;color:#c0392b;border-radius:99px;padding:2px 10px;">🔴 ${diasAtraso}d atrasado</span>` : ''}
-              ${conclusaoInfo}
-            </div>
-            ${p.desc ? `<div style="font-size:13px;color:#6b6b66;margin-bottom:8px;">${p.desc}</div>` : ''}
-            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-              <span style="font-size:12px;color:#9e9e98;">🔒 Prazo inicial: <strong style="color:${atrasado ? '#c0392b' : '#1a1a18'}">${prazoD ? fmtDate(p.prazo) : '—'}</strong></span>
-              ${p.dataConclusao ? `<span style="font-size:12px;color:#9e9e98;">✓ Concluído em: <strong style="color:#2d6a1f">${fmtDate(p.dataConclusao)}</strong></span>` : ''}
-              <span style="font-size:12px;color:#9e9e98;">📌 Criado: ${p.criadoEm}</span>
-              ${tTotal > 0 ? `<span style="font-size:12px;color:#9e9e98;">${tConcluidas}/${tTotal} tarefas</span>` : ''}
-            </div>
-          </div>
-          <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;align-items:flex-start;">
-            ${!concluido ? `<button onclick="abrirModalPlano('${p.id}')" style="font-size:12px;font-weight:500;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:6px 12px;cursor:pointer;background:#fff;color:#1a1a18;">✏️ Editar</button>` : ''}
-            ${!concluido ? `<button onclick="abrirModalConcluir('${p.id}')" style="font-size:12px;font-weight:600;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;background:#2d6a1f;color:#fff;">✓ Concluir</button>` : ''}
-            <button onclick="excluirPlano('${p.id}')" style="font-size:12px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:6px 10px;cursor:pointer;background:#fff;color:#c0392b;" title="Excluir">🗑</button>
-          </div>
-        </div>
-        ${tTotal > 0 ? `
-        <div style="margin-top:12px;">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-            <span style="font-size:11px;color:#9e9e98;font-weight:500;">Progresso das tarefas</span>
-            <span style="font-size:11px;font-weight:700;color:${pctTarefas===100?'#2d6a1f':'#1a1a18'}">${pctTarefas}%</span>
-          </div>
-          <div style="height:6px;background:#f0efe9;border-radius:99px;overflow:hidden;">
-            <div style="height:100%;width:${pctTarefas}%;background:${pctTarefas===100?'#3a8a28':'#1a4f8a'};border-radius:99px;transition:width .4s;"></div>
-          </div>
-        </div>` : ''}
-      </div>
-
-      ${tTotal > 0 ? `
-      <div style="padding:14px 20px 6px;">
-        <div style="font-size:11px;font-weight:600;color:#9e9e98;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Tarefas (${tTotal})</div>
-        ${tarefasHTML}
-      </div>` : `<div style="padding:14px 20px;font-size:13px;color:#b0b0a8;font-style:italic;">Nenhuma tarefa cadastrada.</div>`}
-
-      ${!concluido ? `
-      <div style="padding:0 20px 16px;">
-        <button onclick="adicionarTarefaRapida('${p.id}')" style="font-size:12px;font-weight:500;border:1px dashed rgba(0,0,0,.15);border-radius:6px;padding:6px 14px;cursor:pointer;background:none;color:#9e9e98;width:100%;text-align:center;">+ Adicionar tarefa</button>
-        <div id="form-tarefa-rapida-${p.id}" style="display:none;margin-top:10px;background:#f7f6f2;border-radius:8px;padding:14px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
-            <div>
-              <label style="font-size:10px;font-weight:600;color:#9e9e98;display:block;margin-bottom:3px;">RESPONSÁVEL</label>
-              <input id="tr-resp-${p.id}" type="text" placeholder="Nome" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:7px 9px;outline:none;background:#fff;">
-            </div>
-            <div>
-              <label style="font-size:10px;font-weight:600;color:#9e9e98;display:block;margin-bottom:3px;">SETOR</label>
-              <select id="tr-setor-${p.id}" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:7px 9px;outline:none;background:#fff;color:#1a1a18;">
-                <option>Compras</option><option>Recebimento</option><option>Qualidade</option>
-                <option>Fornecedor</option><option>Logística</option><option>Outro</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size:10px;font-weight:600;color:#9e9e98;display:block;margin-bottom:3px;">PRAZO</label>
-              <input id="tr-prazo-${p.id}" type="date" style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:7px 9px;outline:none;background:#fff;">
-            </div>
-          </div>
-          <div style="margin-bottom:8px;">
-            <label style="font-size:10px;font-weight:600;color:#9e9e98;display:block;margin-bottom:3px;">O QUE FAZER</label>
-            <input id="tr-desc-${p.id}" type="text" placeholder="Descreva a tarefa..." style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:7px 9px;outline:none;background:#fff;">
-          </div>
-          <div style="display:flex;gap:6px;justify-content:flex-end;">
-            <button onclick="document.getElementById('form-tarefa-rapida-${p.id}').style.display='none'" style="font-size:12px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:6px 12px;cursor:pointer;background:#fff;color:#6b6b66;">Cancelar</button>
-            <button onclick="salvarTarefaRapida('${p.id}')" style="font-size:12px;font-weight:600;background:#1a1a18;color:#fff;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;">Salvar tarefa</button>
-          </div>
-        </div>
-      </div>` : ''}
-    </div>`;
-}
-
-function fmtDate(str) {
-  if (!str) return '—';
-  return new Date(str + 'T00:00:00').toLocaleDateString('pt-BR');
-}
-
-// ── MODAL PLANO ──
-let tarefasTemp = [];
-
-async function abrirModalPlano(id) {
-  const ok = await garantirPin('criar/editar plano');
-  if (!ok) return;
-
-  planoEditandoId = id || null;
-  tarefasTemp = [];
-  const p = id ? planos.find(x => x.id === id) : null;
-
-  document.getElementById('modal-plano-titulo').textContent = p ? 'Editar plano' : 'Novo plano de ação';
-  document.getElementById('mp-titulo').value = p ? p.titulo : '';
-  document.getElementById('mp-desc').value   = p ? (p.desc || '') : '';
-  document.getElementById('mp-prior').value  = p ? p.prioridade : 'media';
-
-  if (p) {
-    document.getElementById('mp-prazo').value    = p.prazo || '';
-    document.getElementById('mp-prazo').disabled = true;
-    document.getElementById('mp-prazo').style.opacity = '.6';
-    document.getElementById('mp-prazo').title = 'Prazo inicial não pode ser alterado';
-    tarefasTemp = JSON.parse(JSON.stringify(p.tarefas || []));
-  } else {
-    document.getElementById('mp-prazo').value    = '';
-    document.getElementById('mp-prazo').disabled = false;
-    document.getElementById('mp-prazo').style.opacity = '1';
-    document.getElementById('mp-prazo').title = '';
-  }
-
-  renderTarefasForm();
-  document.getElementById('modal-plano').style.display = 'flex';
-}
-
-function fecharModalPlano() {
-  document.getElementById('modal-plano').style.display = 'none';
-}
-
-function renderTarefasForm() {
-  const el = document.getElementById('mp-tarefas-lista');
-  if (tarefasTemp.length === 0) {
-    el.innerHTML = `<div style="font-size:12px;color:#b0b0a8;padding:8px 0;font-style:italic;">Nenhuma tarefa ainda. Clique em "+ Tarefa" para adicionar.</div>`;
-    return;
-  }
-  el.innerHTML = tarefasTemp.map((t, i) => `
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px;background:#f7f6f2;border-radius:8px;padding:10px 12px;">
-      <div>
-        <label style="font-size:10px;font-weight:600;color:#9e9e98;display:block;margin-bottom:3px;">RESPONSÁVEL</label>
-        <input type="text" value="${t.responsavel||''}" onchange="tarefasTemp[${i}].responsavel=this.value" placeholder="Nome" style="width:100%;font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:6px 8px;outline:none;background:#fff;">
-      </div>
-      <div>
-        <label style="font-size:10px;font-weight:600;color:#9e9e98;display:block;margin-bottom:3px;">SETOR</label>
-        <select onchange="tarefasTemp[${i}].setor=this.value" style="width:100%;font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:6px 8px;outline:none;background:#fff;color:#1a1a18;">
-          ${['Compras','Recebimento','Qualidade','Fornecedor','Logística','Outro'].map(s=>`<option value="${s}"${t.setor===s?' selected':''}>${s}</option>`).join('')}
-        </select>
-      </div>
-      <div>
-        <label style="font-size:10px;font-weight:600;color:#9e9e98;display:block;margin-bottom:3px;">PRAZO</label>
-        <input type="date" value="${t.prazo||''}" onchange="tarefasTemp[${i}].prazo=this.value" style="width:100%;font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:6px 8px;outline:none;background:#fff;">
-      </div>
-      <button onclick="tarefasTemp.splice(${i},1);renderTarefasForm()" style="font-size:18px;background:none;border:none;color:#d0d0c8;cursor:pointer;padding:0 4px;align-self:center;">×</button>
-      <div style="grid-column:1/-1;">
-        <label style="font-size:10px;font-weight:600;color:#9e9e98;display:block;margin-bottom:3px;">O QUE FAZER</label>
-        <input type="text" value="${t.desc||''}" onchange="tarefasTemp[${i}].desc=this.value" placeholder="Descreva a tarefa..." style="width:100%;font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid rgba(0,0,0,.12);border-radius:6px;padding:6px 8px;outline:none;background:#fff;">
-      </div>
-    </div>`).join('');
-}
-
-function adicionarTarefaForm() {
-  tarefasTemp.push({ responsavel:'', setor:'Compras', prazo:'', desc:'', concluida:false });
-  renderTarefasForm();
-}
-
-async function salvarPlano() {
-  const titulo = document.getElementById('mp-titulo').value.trim();
-  const desc   = document.getElementById('mp-desc').value.trim();
-  const prazo  = document.getElementById('mp-prazo').value;
-  const prior  = document.getElementById('mp-prior').value;
-
-  if (!titulo) { alert('Informe o título do plano.'); return; }
-  if (!prazo && !planoEditandoId) { alert('Informe o prazo inicial.'); return; }
-
-  const btnSalvar = document.querySelector('#modal-plano button[onclick="salvarPlano()"]');
-  if (btnSalvar) { btnSalvar.textContent = 'Salvando...'; btnSalvar.disabled = true; }
-
-  let planoObj;
-  if (planoEditandoId) {
-    planoObj = planos.find(x => x.id === planoEditandoId);
-    if (planoObj) { planoObj.titulo = titulo; planoObj.desc = desc; planoObj.prioridade = prior; planoObj.tarefas = tarefasTemp; }
-  } else {
-    planoObj = {
-      id: 'p' + Date.now(),
-      titulo, desc, prazo, prioridade: prior,
-      status: 'aberto', tarefas: tarefasTemp,
-      criadoEm: new Date().toLocaleDateString('pt-BR'),
-      dataConclusao: null,
-    };
-    planos.unshift(planoObj);
-  }
-
-  try {
-    const r = await apiPost({ acao: 'salvar', pin: pinSessao, plano: planoObj });
-    if (!r.ok) throw new Error(r.erro);
-    fecharModalPlano();
-    renderResumoPlanosRapido();
-    renderListaPlanos();
-  } catch(e) {
-    alert('Erro ao salvar: ' + e.message);
-  } finally {
-    if (btnSalvar) { btnSalvar.textContent = 'Salvar plano'; btnSalvar.disabled = false; }
-  }
-}
-
-// ── TAREFA RÁPIDA INLINE ──
-function adicionarTarefaRapida(pid) {
-  document.getElementById('form-tarefa-rapida-' + pid).style.display = 'block';
-}
-
-async function salvarTarefaRapida(pid) {
-  const ok = await garantirPin('adicionar tarefa');
-  if (!ok) return;
-
-  const resp  = document.getElementById('tr-resp-'  + pid).value.trim();
-  const setor = document.getElementById('tr-setor-' + pid).value;
-  const prazo = document.getElementById('tr-prazo-' + pid).value;
-  const desc  = document.getElementById('tr-desc-'  + pid).value.trim();
-  if (!resp || !desc) { alert('Informe responsável e o que deve ser feito.'); return; }
-
-  const p = planos.find(x => x.id === pid);
-  if (!p) return;
-  if (!p.tarefas) p.tarefas = [];
-  p.tarefas.push({ responsavel: resp, setor, prazo, desc, concluida: false });
-
-  try {
-    const r = await apiPost({ acao: 'salvar', pin: pinSessao, plano: p });
-    if (!r.ok) throw new Error(r.erro);
-    renderListaPlanos();
-    renderResumoPlanosRapido();
-  } catch(e) { alert('Erro: ' + e.message); }
-}
-
-// ── TOGGLE TAREFA ──
-async function toggleTarefa(pid, ti) {
-  const ok = await garantirPin('marcar tarefa');
-  if (!ok) return;
-
-  const p = planos.find(x => x.id === pid);
-  if (!p || !p.tarefas[ti]) return;
-  p.tarefas[ti].concluida = !p.tarefas[ti].concluida;
-
-  try {
-    const r = await apiPost({ acao: 'salvar', pin: pinSessao, plano: p });
-    if (!r.ok) throw new Error(r.erro);
-    renderListaPlanos();
-    renderResumoPlanosRapido();
-  } catch(e) { alert('Erro: ' + e.message); }
-}
-
-// ── EDITAR TAREFA ──
-async function editarTarefaInline(pid, ti) {
-  const ok = await garantirPin('editar tarefa');
-  if (!ok) return;
-  planoEditandoId = pid;
-  const p = planos.find(x => x.id === pid);
-  if (!p) return;
-  tarefasTemp = JSON.parse(JSON.stringify(p.tarefas || []));
-  document.getElementById('modal-plano-titulo').textContent = 'Editar tarefas do plano';
-  document.getElementById('mp-titulo').value = p.titulo;
-  document.getElementById('mp-desc').value   = p.desc || '';
-  document.getElementById('mp-prior').value  = p.prioridade;
-  document.getElementById('mp-prazo').value  = p.prazo || '';
-  document.getElementById('mp-prazo').disabled = true;
-  document.getElementById('mp-prazo').style.opacity = '.6';
-  renderTarefasForm();
-  document.getElementById('modal-plano').style.display = 'flex';
-}
-
-// ── CONCLUIR PLANO ──
-async function abrirModalConcluir(pid) {
-  const ok = await garantirPin('concluir plano');
-  if (!ok) return;
-  planoConcluindoId = pid;
-  const p = planos.find(x => x.id === pid);
-  document.getElementById('mc-subtitulo').textContent = p ? p.titulo : '';
-  document.getElementById('mc-data').value = new Date().toISOString().slice(0,10);
-  document.getElementById('modal-concluir').style.display = 'flex';
-}
-
-function fecharModalConcluir() {
-  document.getElementById('modal-concluir').style.display = 'none';
-}
-
-async function confirmarConclusao() {
-  const data = document.getElementById('mc-data').value;
-  if (!data) { alert('Informe a data de conclusão.'); return; }
-
-  const p = planos.find(x => x.id === planoConcluindoId);
-  if (!p) return;
-  p.status = 'concluido';
-  p.dataConclusao = data;
-
-  const btn = document.querySelector('#modal-concluir button[onclick="confirmarConclusao()"]');
-  if (btn) { btn.textContent = 'Salvando...'; btn.disabled = true; }
-
-  try {
-    const r = await apiPost({ acao: 'salvar', pin: pinSessao, plano: p });
-    if (!r.ok) throw new Error(r.erro);
-    fecharModalConcluir();
-    renderResumoPlanosRapido();
-    renderListaPlanos();
-  } catch(e) {
-    alert('Erro: ' + e.message);
-  } finally {
-    if (btn) { btn.textContent = '✓ Confirmar conclusão'; btn.disabled = false; }
-  }
-}
-
-// ── EXCLUIR PLANO ──
-async function excluirPlano(pid) {
-  if (!confirm('Excluir este plano? Essa ação não pode ser desfeita.')) return;
-  const ok = await garantirPin('excluir plano');
-  if (!ok) return;
-
-  try {
-    const r = await apiPost({ acao: 'excluir', pin: pinSessao, id: pid });
-    if (!r.ok) throw new Error(r.erro);
-    planos = planos.filter(x => x.id !== pid);
-    renderResumoPlanosRapido();
-    renderListaPlanos();
-  } catch(e) { alert('Erro: ' + e.message); }
-}
-
-// ── GERADOR DE TEXTO ──
-function gerarPlanoAcao() {
-  const criticos = allRows.filter(isCritico).sort((a,b) => scoreCritico(b)-scoreCritico(a));
-  if (criticos.length === 0) { mostrarOutput('📋 Plano de Ação', '✅ Nenhuma nota crítica.'); return; }
-  const hoje = new Date().toLocaleDateString('pt-BR');
-  const p2   = new Date(Date.now()+2*86400000).toLocaleDateString('pt-BR');
-  let txt = `PLANO DE AÇÃO — NOTAS CRÍTICAS\nGerado: ${hoje}\n${'─'.repeat(60)}\n\n`;
-  criticos.forEach((r,i) => {
-    const d = daysDiff(r.dtEntrega), v = r.volRep+r.volFalt;
-    txt += `${i+1}. ${r.fornecedor} — NF ${r.nf||'—'} (${d}d parada)\n`;
-    if (v>0) txt+=`   Volume: ${v.toLocaleString('pt-BR')} un.\n`;
-    txt+=`   Status: ${r.statusRaw||'Pendente'}\n`;
-    if (r.obsComp) txt+=`   Obs: "${r.obsComp}"\n`;
-    txt+=`   ➤ AÇÃO: Contatar e exigir posição até ${p2}\n   ➤ RESPONSÁVEL: Compras\n\n`;
-  });
-  mostrarOutput('📋 Plano de Ação (texto)', txt);
-}
-
-loadData();
-let planoEditandoId = null;
-let planoConcluindoId = null;
-
-const PRIOR_CONFIG = {
-  critica: { label: '🔴 Crítica',  bg: '#fdf0ef', border: '#f5c6c3', color: '#c0392b' },
-  alta:    { label: '🟠 Alta',     bg: '#fef8ec', border: '#f5d98a', color: '#9a6200' },
-  media:   { label: '🟡 Média',    bg: '#fefbe8', border: '#f0e060', color: '#7a6800' },
-  baixa:   { label: '🟢 Baixa',    bg: '#edf6e8', border: '#a8d898', color: '#2d6a1f' },
-};
-const SETOR_COLORS = {
-  'Compras':'#1a4f8a','Recebimento':'#9a6200','Qualidade':'#6a2d8a',
-  'Fornecedor':'#c0392b','Logística':'#2d6a1f','Outro':'#6b6b66'
-};
-
-function salvarPlanos() {
-  localStorage.setItem('notas-planos-v2', JSON.stringify(planos));
-}
-
-// ── RENDER CENTRAL ──
-function renderAcao() {
+  await DB.load();
+  startPolling();
   const criticos = allRows.filter(isCritico);
   const volCritico = criticos.reduce((a, r) => a + r.volRep + r.volFalt, 0);
   document.getElementById('acao-alerta-titulo').textContent =
@@ -2753,7 +2206,7 @@ function adicionarTarefaForm() {
   renderTarefasForm();
 }
 
-function salvarPlano() {
+async function salvarPlano() {
   const titulo = document.getElementById('mp-titulo').value.trim();
   const desc   = document.getElementById('mp-desc').value.trim();
   const prazo  = document.getElementById('mp-prazo').value;
@@ -2792,7 +2245,7 @@ function adicionarTarefaRapida(pid) {
   document.getElementById('form-tarefa-rapida-' + pid).style.display = 'block';
 }
 
-function salvarTarefaRapida(pid) {
+async function salvarTarefaRapida(pid) {
   const resp  = document.getElementById('tr-resp-'  + pid).value.trim();
   const setor = document.getElementById('tr-setor-' + pid).value;
   const prazo = document.getElementById('tr-prazo-' + pid).value;
@@ -2811,7 +2264,7 @@ function salvarTarefaRapida(pid) {
 }
 
 // ── TOGGLE TAREFA ──
-function toggleTarefa(pid, ti) {
+async function toggleTarefa(pid, ti) {
   const p = planos.find(x => x.id === pid);
   if (!p || !p.tarefas[ti]) return;
   p.tarefas[ti].concluida = !p.tarefas[ti].concluida;
@@ -2856,7 +2309,7 @@ function fecharModalConcluir() {
   document.getElementById('modal-concluir').style.display = 'none';
 }
 
-function confirmarConclusao() {
+async function confirmarConclusao() {
   const data = document.getElementById('mc-data').value;
   if (!data) { alert('Informe a data de conclusão.'); return; }
   const p = planos.find(x => x.id === planoConcluindoId);
@@ -2871,10 +2324,17 @@ function confirmarConclusao() {
 }
 
 // ── EXCLUIR PLANO ──
-function excluirPlano(pid) {
+async function excluirPlano(pid) {
+  // 1. Primeiro de tudo, pede a senha
+  if (!validarAcesso()) return;
+
+  // 2. Se a senha estiver correta, pede a confirmação visual
   if (!confirm('Excluir este plano de ação? Essa ação não pode ser desfeita.')) return;
+
+  // 3. Só então remove do array e salva na nuvem
   planos = planos.filter(x => x.id !== pid);
-  salvarPlanos();
+  
+  await DB.save(); // Garante que a exclusão suba para o JSONBin
   renderResumoPlanosRapido();
   renderListaPlanos();
 }
@@ -2904,6 +2364,9 @@ function gerarPlanoAcao() {
   txt += `${'─'.repeat(60)}\nPRÓXIMA REVISÃO: ${new Date(Date.now()+3*86400000).toLocaleDateString('pt-BR')}`;
   mostrarOutput('📋 Plano de Ação (texto)', txt);
 }
+
+// Inicializa DB compartilhado assim que a página carrega
+DB.init().catch(console.error);
 
 loadData();
 </script>

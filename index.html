@@ -1038,28 +1038,39 @@ async function loadData() {
   document.getElementById('error-msg').style.display = 'none';
   document.querySelector('#loading p').textContent = 'Conectando à planilha...';
 
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
+  // Usa JSONP via callback para evitar bloqueio de CORS do Google Sheets
+  function fetchGviz(gid) {
+    return new Promise((resolve, reject) => {
+      const cbName = '_gviz_cb_' + Date.now();
+      const timeout = setTimeout(() => {
+        delete window[cbName];
+        script.remove();
+        reject(new Error('Tempo limite atingido (15s) — a planilha demorou demais. Verifique se está pública.'));
+      }, 15000);
 
-  // Timeout de 12 segundos
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12000);
+      window[cbName] = function(data) {
+        clearTimeout(timeout);
+        delete window[cbName];
+        script.remove();
+        resolve(data);
+      };
+
+      const script = document.createElement('script');
+      script.onerror = () => {
+        clearTimeout(timeout);
+        delete window[cbName];
+        reject(new Error('Falha ao carregar a planilha — verifique conexão e se a planilha está pública.'));
+      };
+      script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;handler:${cbName}&gid=${gid}&headers=1`;
+      document.head.appendChild(script);
+    });
+  }
 
   try {
     document.querySelector('#loading p').textContent = 'Buscando dados da planilha...';
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeout);
-
-    if (!res.ok) throw new Error(`HTTPS ${res.status} — verifique se a planilha está pública`);
-
-    const text = await res.text();
-
-    // Verifica se a resposta parece válida
-    if (!text.includes('google.visualization')) {
-      throw new Error('Resposta inesperada da planilha — verifique se o GID está correto e a aba existe');
-    }
+    const json = await fetchGviz(GID);
 
     document.querySelector('#loading p').textContent = 'Processando dados...';
-    const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1));
 
     if (!json.table || !json.table.rows) {
       throw new Error('Estrutura de dados inválida — a aba pode estar vazia ou o GID incorreto');
@@ -1109,13 +1120,11 @@ async function loadData() {
     renderTable();
 
   } catch (e) {
-    clearTimeout(timeout);
     document.getElementById('loading').style.display = 'none';
     const err = document.getElementById('error-msg');
     err.style.display = 'block';
 
-    let msg = e.message;
-    if (e.name === 'AbortError') msg = 'Tempo limite atingido (12s) — a planilha demorou demais para responder. Verifique sua conexão ou se a planilha está pública.';
+    const msg = e.message || 'Erro desconhecido ao carregar a planilha.';
 
     err.innerHTML = `
       <strong>Não foi possível carregar os dados.</strong><br><br>
